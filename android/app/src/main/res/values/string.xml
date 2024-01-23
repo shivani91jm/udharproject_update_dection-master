@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="facebook_app_id">784470536575007</string>
+    <string name="facebook_client_token">fa7f511034ded565069f4bb26594cfb0</string>
+    <string name="app_name">Shiva Group</string>
+    <string name="fb_login_protocol_scheme">fb784470536575007</string>
+
+</resources>

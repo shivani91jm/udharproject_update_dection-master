@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "1063502807404",
+    "project_id": "shiva-group-project",
+    "storage_bucket": "shiva-group-project.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1063502807404:android:f274aca77d75abccf7f349",
+        "android_client_info": {
+          "package_name": "com.ndmeaa.shivagroup"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1063502807404-2m8t8ohjqqt8tea8ran13g7ehed5b0am.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ndmeaa.shivagroup",
+            "certificate_hash": "697aae6da95127b88efe5e8f3cdfbcd0634bb19b"
+          }
+        },
+        {
+          "client_id": "1063502807404-6apf6dlu8c9gs06m76e1js1e8ftr77n2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ndmeaa.shivagroup",
+            "certificate_hash": "57bc7e5c27de6aa82a1e604a73a0c444a18ec0ee"
+          }
+        },
+        {
+          "client_id": "1063502807404-afg9gs5v1v93t58cnocat1ea0in8vqh4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ndmeaa.shivagroup",
+            "certificate_hash": "99bfeace08ab7a24a8ef60f2f82c7f6eb0c9fc20"
+          }
+        },
+        {
+          "client_id": "1063502807404-ncscldah67d5fohtdg8h0p3ega8iic7d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAApKC56o3rztSYe-biCKr6gyvvDTi2KJ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1063502807404-kku8a7jph0v8i1l3k08e3t1ack64allf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
