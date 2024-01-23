@@ -15,6 +15,7 @@ class Monthly {
   String? createdAt;
   String? updatedAt;
   String? attandancStatus;
+  var staff_image;
   List<GetStaffAttendance>? getStaffAttendance;
 
   Monthly(
@@ -32,6 +33,7 @@ class Monthly {
         this.createdAt,
         this.updatedAt,
         this.attandancStatus,
+        this.staff_image,
         this.getStaffAttendance});
 
   Monthly.fromJson(Map<String, dynamic> json) {
@@ -49,6 +51,7 @@ class Monthly {
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     attandancStatus = json['attandanc_status'];
+    staff_image = json['staff_image'];
     if (json['get_staff_attendance'] != null) {
       getStaffAttendance = <GetStaffAttendance>[];
       json['get_staff_attendance'].forEach((v) {
@@ -74,6 +77,7 @@ class Monthly {
     data['created_at'] = this.createdAt;
     data['updated_at'] = this.updatedAt;
     data['attandanc_status'] = this.attandancStatus;
+    data['staff_image'] = this.staff_image;
     if (this.getStaffAttendance != null) {
       data['get_staff_attendance'] =
           this.getStaffAttendance!.map((v) => v.toJson()).toList();

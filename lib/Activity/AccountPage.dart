@@ -380,7 +380,7 @@ class _AccountPageState extends State<AccountPage> {
                                       icon: Icon(Icons.arrow_forward_ios_rounded,color:  Colors.black38,),
                                       onPressed: () async{
                                         await availableCameras().then((value) => Navigator.push(context,
-                                            MaterialPageRoute(builder: (_) => RecognitionScreen(cameras: value))));
+                                            MaterialPageRoute(builder: (_) => RecognitionScreen(cameras: value))));0
                                         },
                                     ),
                                   ),

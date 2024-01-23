@@ -101,10 +101,6 @@ class _HomePageState extends State<AutoDectionPage> {
           });
         }
       });
-
-
-
-
     }
     else {
       _futureLogin.then((value) {
@@ -329,6 +325,8 @@ class _HomePageState extends State<AutoDectionPage> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     List<Widget> stackChildren = [];
     size = MediaQuery
         .of(context)
@@ -418,12 +416,29 @@ class _HomePageState extends State<AutoDectionPage> {
         backgroundColor: Colors.black,
         body: Stack(
             children: [
-              Container(
-                  margin: const EdgeInsets.only(top: 0),
-                  color: Colors.black,
-                  child: Stack(
-                    children: stackChildren,
-                  )),
+              image != null
+                  ? Container(
+                margin: const EdgeInsets.only(
+                    top: 60, left: 30, right: 30, bottom: 0),
+                child: FittedBox(
+                  child: SizedBox(
+                    width: image!.width.toDouble(),
+                    height: image!.width.toDouble(),
+                    child: CustomPaint(
+                      painter: FacePainter(
+                          facesList: recognitions, imageFile: image),
+                    ),
+                  ),
+                ),
+              )
+                  : Container(
+                margin: const EdgeInsets.only(top: 100),
+                child: Image.asset(
+                  "images/logo.png",
+                  width: screenWidth - 100,
+                  height: screenWidth - 100,
+                ),
+              ),
 
             ]
         ));
@@ -558,15 +573,25 @@ class _HomePageState extends State<AutoDectionPage> {
   }
 
   void storeimage() async {
-    final http.Response responseData = await http.get(Uri.parse("https://crm.shivagroupind.com/img/image_65744f9c78dc1.png"));
-    var  uint8list = responseData.bodyBytes;
-    var buffer = uint8list.buffer;
-    ByteData byteData = ByteData.view(buffer);
-    var tempDir = await getTemporaryDirectory();
-    //  image="https://crm.shivagroupind.com//img//image_656f137d1e904.png"";
-    _image=  await File('${tempDir.path}/img').writeAsBytes(
-        buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
-    doFaceDetection();
+    for(int i=0;i<getMonthlyConaList.length;i++)
+    {
+      var images=getMonthlyConaList[i].staff_image;
+      var name=getMonthlyConaList[i].staffName;
+      try{
+        final http.Response responseData = await http.get(Uri.parse(images.toString()));
+        var  uint8list = responseData.bodyBytes;
+        var buffer = uint8list.buffer;
+        ByteData byteData = ByteData.view(buffer);
+        var tempDir = await getTemporaryDirectory();
+        // //  image="https://crm.shivagroupind.com//img//image_656f137d1e904.png"";
+        _image=  await File('${tempDir.path}/img').writeAsBytes(
+            buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+        doFaceDetection();
+      }on Exception catch(_){
+
+      }
+    }
+
   }
 }
 
