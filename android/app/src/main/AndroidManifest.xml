@@ -25,15 +25,14 @@
         </intent>
     </queries>
    <application
-        android:label="Shivagroup"
+        android:label="Alldone"
        android:requestLegacyExternalStorage="true"
         android:name="${applicationName}"
        android:allowBackup="false"
        android:hardwareAccelerated="false"
        tools:replace="android:allowBackup"
        android:fullBackupContent="false"
-
-        android:icon="@mipmap/ic_launcher">
+       android:icon="@drawable/logo_alldone">
 
        <meta-data
            android:name="com.google.firebase.ml.vision.DEPENDENCIES"

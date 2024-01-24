@@ -1,10 +1,16 @@
+import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:udharproject/Activity/AdharCardOrPancardPage.dart';
 import 'package:udharproject/Activity/CalculateSalaryPage.dart';
@@ -13,13 +19,19 @@ import 'package:udharproject/Activity/LoginPage.dart';
 import 'package:udharproject/Activity/ManngeBusinessList.dart';
 import 'package:udharproject/Api/AllAPIBooking.dart';
 import 'package:udharproject/Colors/ColorsClass.dart';
+import 'package:udharproject/FaceDetection/AutoDectionPage.dart';
 import 'package:udharproject/FaceDetection/RecognitionScreen.dart';
+import 'package:udharproject/ML/Recognition.dart';
+import 'package:udharproject/ML/Recognizer.dart';
 import 'package:udharproject/Utils/AppContent.dart';
 import 'package:udharproject/Utils/Assets/Images/Images.dart';
 import 'package:udharproject/Utils/FontSize/AppSize.dart';
 import 'package:udharproject/Utils/Routesss/RoutesName.dart';
+import 'package:udharproject/model/MonthlyWiseStaffListModel/Monthly.dart';
 import 'package:udharproject/model/SocialMediaLogin/SocialInfo.dart';
-
+import 'package:image/image.dart' as img;
+import 'package:http/http.dart' as http;
+import '../model/MonthlyWiseStaffListModel/Info.dart';
 class AccountPage extends StatefulWidget {
   const AccountPage({Key? key}) : super(key: key);
   @override
@@ -34,7 +46,14 @@ class _AccountPageState extends State<AccountPage> {
   final _formkey = GlobalKey<FormState>();
   List<String> languageitemList = ['English', 'Hindi'];
   var language="";
-
+  List<Recognition> recognitions = [];
+  late Recognizer _recognizer;
+  dynamic faceDetector;
+  List<Monthly> getMonthlyConaList =[];
+  var images;
+  File? _image;
+  List<Face> faces = [];
+  dynamic _scanResults;
   @override
   void dispose() {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp,DeviceOrientation.portraitDown,]);
@@ -48,6 +67,17 @@ class _AccountPageState extends State<AccountPage> {
   {
     // TODO: implement initState
     super.initState();
+    final options = FaceDetectorOptions(
+        enableClassification: false,
+        enableContours: false,
+        enableLandmarks: false);
+
+    //TODO initalize face detector
+    faceDetector = FaceDetector(options: options);
+
+    //TODO initalize face recognizer
+    _recognizer = Recognizer();
+    showStaffListData();
     getValueOfSharedPrefrence();
     bussinessListData();
     getValue();
@@ -380,7 +410,7 @@ class _AccountPageState extends State<AccountPage> {
                                       icon: Icon(Icons.arrow_forward_ios_rounded,color:  Colors.black38,),
                                       onPressed: () async{
                                         await availableCameras().then((value) => Navigator.push(context,
-                                            MaterialPageRoute(builder: (_) => RecognitionScreen(cameras: value))));0
+                                            MaterialPageRoute(builder: (_) => AutoDectionPage(cameras: value))));
                                         },
                                     ),
                                   ),
@@ -1129,17 +1159,18 @@ class _AccountPageState extends State<AccountPage> {
                                   }
                                 }
                               },
-                              title: Text(languageitemList[index], style: TextStyle(
+                              title: Text(languageitemList[index],
+                                style: TextStyle(
                                   fontSize: 16,
                                   color: AppColors.dartTextColorsBlack,
                                   fontWeight: FontWeight.bold
                               ),
-
                               ),
                             );
-                            }, separatorBuilder: (BuildContext context, int index) { return Divider(
-                    height: 1,
-                    color: AppColors.lightTextColorsBlack,
+                            }, separatorBuilder: (BuildContext context, int index) {
+                            return Divider(
+                            height: 1,
+                        color: AppColors.lightTextColorsBlack,
                   ); },),
                 ),
 
@@ -1207,6 +1238,162 @@ class _AccountPageState extends State<AccountPage> {
     SharedPreferences sharedPreferences=await SharedPreferences.getInstance();
    language= sharedPreferences.getString("laguageValue")??"";
   }
+  void showStaffListData() async{
+  //  _isLoading=true;
+    SharedPreferences prefsdf = await SharedPreferences.getInstance();
+    var   token= prefsdf.getString("token").toString();
+    var user_id = prefsdf.getString("user_id").toString();
+    var bussiness_id=prefsdf.getString("bussiness_id").toString();
+    var _futureLogin = BooksApi.ShowStffListAccordingToMonthly(user_id,bussiness_id, token, context);
+    if (_futureLogin != null) {
+      _futureLogin.then((value) async{
+        var res = value.response;
+        if (res == "true") {
+          if (value.info!= null) {
+            //_isLoading=false;
+            Info ? info = value.info;
+            getMonthlyConaList= info!.monthly!;
+            if (getMonthlyConaList.isNotEmpty != null) {
+              storeimage();
+            }
+          }
+        }
+        else
+        {
+          setState(() {
+           // _isLoading=false;
+          });
+        }
+      });
+    }
+    else {
+      _futureLogin.then((value) {
+        String data = value.msg.toString();
 
+        setState(() {
+         // _isLoading=true;
+          // staffListFlag=true;
+        });
+        Fluttertoast.showToast(
+            msg: "" + data,
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: AppColors.drakColorTheme,
+            textColor: AppColors.white,
+            fontSize: 16.0
+        );
+      });
+    }
+  }
+  void storeimage() async {
+    if(getMonthlyConaList.length!=0) {
+      print("if working is zero ");
+      for (int i = 0; i < getMonthlyConaList.length; i++) {
+        var images = getMonthlyConaList[i].staff_image;
+        var name = getMonthlyConaList[i].staffName;
+        try {
+          final http.Response responseData = await http.get(
+              Uri.parse(images.toString()));
+          var uint8list = responseData.bodyBytes;
+          var buffer = uint8list.buffer;
+          ByteData byteData = ByteData.view(buffer);
+          var tempDir = await getTemporaryDirectory();
+          // //  image="https://crm.shivagroupind.com//img//image_656f137d1e904.png"";
+          _image = await File('${tempDir.path}/img').writeAsBytes(
+              buffer.asUint8List(
+                  byteData.offsetInBytes, byteData.lengthInBytes));
+          faces.clear();
+
+          images = await _image?.readAsBytes();
+          images = await decodeImageFromList(images);
+          print("${images.width}   ${images.height}");
+
+          //  recognitions.clear();
+          for (Face face in faces) {
+            Rect faceRect = face.boundingBox;
+            num left = faceRect.left < 0 ? 0 : faceRect.left;
+            num top = faceRect.top < 0 ? 0 : faceRect.top;
+            num right = faceRect.right > images.width
+                ? images.width - 1
+                : faceRect.right;
+            num bottom = faceRect.bottom > images.height
+                ? images.height - 1
+                : faceRect.bottom;
+            num width = right - left;
+            num height = bottom - top;
+
+            //TODO crop face
+            File cropedFace = await FlutterNativeImage.cropImage(_image!.path,
+                left.toInt(), top.toInt(), width.toInt(), height.toInt());
+            final bytes = await File(cropedFace!.path).readAsBytes();
+            final img.Image? faceImg = img.decodeImage(bytes);
+            Recognition recognition = _recognizer.recognize(
+                faceImg!, face.boundingBox);
+            if (recognition.distance > 1.25) {
+              recognition.name = "Unknown";
+            }
+            recognitions.add(recognition);
+            _recognizer.registered.putIfAbsent(name.toString(), () =>
+            recognition
+            );
+          }
+        } on Exception catch (_) {
+          print("catch working...");
+        }
+      }
+    }
+    else
+      {
+        print("size is zero ");
+      }
+
+  }
+//TODO remove rotation of camera images
+  removeRotation(File inputImage) async {
+    final img.Image? capturedImage = img.decodeImage(await File(inputImage!.path).readAsBytes());
+    final img.Image orientedImage = img.bakeOrientation(capturedImage!);
+    return await File(_image!.path).writeAsBytes(img.encodeJpg(orientedImage));
+  }
+
+  //TODO perform Face Recognition
+  performFaceRecognition() async {
+
+    images = await _image?.readAsBytes();
+    images = await decodeImageFromList(images);
+    print("${images.width}   ${images.height}");
+
+    recognitions.clear();
+    for (Face face in faces) {
+      Rect faceRect = face.boundingBox;
+      num left = faceRect.left<0?0:faceRect.left;
+      num top = faceRect.top<0?0:faceRect.top;
+      num right = faceRect.right>images.width?images.width-1:faceRect.right;
+      num bottom = faceRect.bottom>images.height?images.height-1:faceRect.bottom;
+      num width = right - left;
+      num height = bottom - top;
+
+      //TODO crop face
+      File cropedFace = await FlutterNativeImage.cropImage(_image!.path,
+          left.toInt(),top.toInt(),width.toInt(),height.toInt());
+      final bytes = await File(cropedFace!.path).readAsBytes();
+      final img.Image? faceImg = img.decodeImage(bytes);
+      Recognition recognition = _recognizer.recognize(faceImg!, face.boundingBox);
+      if(recognition.distance>1.25) {
+        recognition.name = "Unknown";
+      }
+      // recognitions.add(recognition);
+      //  _recognizer.registered.putIfAbsent(, () => recognition);
+    }
+    drawRectangleAroundFaces();
+  }
+
+  //TODO draw rectangles
+  drawRectangleAroundFaces() async {
+    setState(() {
+      images;
+      faces;
+    });
+  }
 
 }

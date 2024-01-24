@@ -38,6 +38,14 @@
           }
         },
         {
+          "client_id": "1063502807404-uj9d2kso08u7fe7osesl7mu15r373dim.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ndmeaa.shivagroup",
+            "certificate_hash": "a6af8c210aa9d924945053433cbaf21e1d272988"
+          }
+        },
+        {
           "client_id": "1063502807404-ncscldah67d5fohtdg8h0p3ega8iic7d.apps.googleusercontent.com",
           "client_type": 3
         }

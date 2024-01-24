@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:camera/camera.dart';
@@ -428,9 +427,10 @@ class _HomePageState extends State<RecognitionScreen> {
               const SizedBox(height: 10,),
               ElevatedButton(
                   onPressed: () async{
+
                     List<int> imageBytes = img.encodePng(croppedFace);
-                    String base64String = base64Encode(imageBytes);
-                    _validationFormData(base64String);
+                 //   String base64String = base64Encode(imageBytes);
+                   _validationFormData(recognition.embeddings);
 
                     textEditingController.text = "";
                     Navigator.pop(context);
@@ -445,7 +445,7 @@ class _HomePageState extends State<RecognitionScreen> {
       ),
     );
   }
-  void _validationFormData(String image) async{
+  void _validationFormData(List<double> image) async{
     SharedPreferences prefsdf = await SharedPreferences.getInstance();
       var   token= prefsdf.getString("token").toString();
       var assign_to_owner_id = prefsdf.getString("user_id").toString();
@@ -460,7 +460,7 @@ class _HomePageState extends State<RecognitionScreen> {
           var staff_cycle=    await prefs.getString('staff_cycle')??"";
          var monthyly=     await prefs.getString('monthyly')??"";
 
-         var _futureLogin = BooksApi.addStaff(staffname,staffmob,staffpassw,staffemail,staff_cycle,monthyly,salary_amount,assign_to_owner_id,assgin_to_bussinesses_id,token,context,image );
+         var _futureLogin = BooksApi.addStaff(staffname,staffmob,staffpassw,staffemail,staff_cycle,monthyly,salary_amount,assign_to_owner_id,assgin_to_bussinesses_id,token,context,image.toString() );
       _futureLogin.then((value) {
         var res = value.response;
         if (res == "true") {

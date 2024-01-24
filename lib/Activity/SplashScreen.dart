@@ -57,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
           child: AnimatedTextKit(
             animatedTexts: [
-              WavyAnimatedText('SHIVA GROUP'),
+              WavyAnimatedText('Alldone'),
             ],
             onTap: ()
             {

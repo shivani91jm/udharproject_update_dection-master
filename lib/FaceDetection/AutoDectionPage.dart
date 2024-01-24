@@ -54,10 +54,9 @@ class _HomePageState extends State<AutoDectionPage> {
   bool _isLoading=false;
   List<Monthly> getMonthlyConaList =[];
   var images;
+
   @override
   void initState() {
-
-    showStaffListData();
     super.initState();
     imagePicker = ImagePicker();
 
@@ -72,6 +71,7 @@ class _HomePageState extends State<AutoDectionPage> {
 
     //TODO initalize face recognizer
     _recognizer = Recognizer();
+ //   showStaffListData();
     initCamera(widget.cameras![1]);
   }
   void showStaffListData() async{
@@ -208,7 +208,7 @@ class _HomePageState extends State<AutoDectionPage> {
       _cameraController.value.previewSize!.height,
       _cameraController.value.previewSize!.width,
     );
-    CustomPainter painter = FaceDetectorPainter(imageSize, _scanResults, camDirec);
+    CustomPainter painter = FacePainter(facesList: recognitions, imageFile: images);
 
     return CustomPaint(
       painter: painter,
@@ -225,6 +225,10 @@ class _HomePageState extends State<AutoDectionPage> {
       await _cameraController.setFlashMode(FlashMode.off);
       XFile picture = await _cameraController.takePicture();
       print("gvg"+picture.toString());
+      _image=picture as File;
+      _image=   File(picture.path);
+     doFaceDetection();
+
     } on CameraException catch (e) {
       debugPrint('Error occured while taking picture: $e');
       return null;
@@ -267,12 +271,12 @@ class _HomePageState extends State<AutoDectionPage> {
     //TODO passing input to face detector and getting detected faces
     final inputImage = InputImage.fromFile(_image!);
     faces = await faceDetector.processImage(inputImage);
-
-    //TODO call the method to perform face recognition on detected faces
-    performFaceRecognition();
     setState(() {
       _scanResults=faces;
     });
+    //TODO call the method to perform face recognition on detected faces
+    performFaceRecognition();
+
 
   }
 
@@ -307,7 +311,7 @@ class _HomePageState extends State<AutoDectionPage> {
       final bytes = await File(cropedFace!.path).readAsBytes();
       final img.Image? faceImg = img.decodeImage(bytes);
       Recognition recognition = _recognizer.recognize(faceImg!, face.boundingBox);
-      if(recognition.distance>1.25) {
+      if(recognition.distance>1) {
         recognition.name = "Unknown";
       }
       recognitions.add(recognition);
@@ -318,7 +322,7 @@ class _HomePageState extends State<AutoDectionPage> {
   //TODO draw rectangles
   drawRectangleAroundFaces() async {
     setState(() {
-      image;
+      images;
       faces;
     });
   }
@@ -385,7 +389,7 @@ class _HomePageState extends State<AutoDectionPage> {
                       iconSize: 40,
                       color: Colors.black,
                       onPressed: () {
-
+                            takePicture();
                       },
                     ),
                     Container(
@@ -395,7 +399,8 @@ class _HomePageState extends State<AutoDectionPage> {
                     Expanded(
                         child: IconButton(
                           onPressed: (){
-                            register = true;
+                          //  register = true;
+
                           },
                           iconSize: 50,
                           padding: EdgeInsets.zero,
@@ -415,36 +420,8 @@ class _HomePageState extends State<AutoDectionPage> {
         resizeToAvoidBottomInset: false,
         backgroundColor: Colors.black,
         body: Stack(
-            children: [
-              image != null
-                  ? Container(
-                margin: const EdgeInsets.only(
-                    top: 60, left: 30, right: 30, bottom: 0),
-                child: FittedBox(
-                  child: SizedBox(
-                    width: image!.width.toDouble(),
-                    height: image!.width.toDouble(),
-                    child: CustomPaint(
-                      painter: FacePainter(
-                          facesList: recognitions, imageFile: image),
-                    ),
-                  ),
-                ),
-              )
-                  : Container(
-                margin: const EdgeInsets.only(top: 100),
-                child: Image.asset(
-                  "images/logo.png",
-                  width: screenWidth - 100,
-                  height: screenWidth - 100,
-                ),
-              ),
-
-            ]
+            children: stackChildren
         ));
-
-
-
   }
   img.Image? image;
   bool register = false;
@@ -484,9 +461,6 @@ class _HomePageState extends State<AutoDectionPage> {
       }
 
     }
-
-
-
   }
 
   showFaceRegistrationDialogue(img.Image croppedFace, Recognition recognition, BuildContext context){
@@ -584,11 +558,10 @@ class _HomePageState extends State<AutoDectionPage> {
         ByteData byteData = ByteData.view(buffer);
         var tempDir = await getTemporaryDirectory();
         // //  image="https://crm.shivagroupind.com//img//image_656f137d1e904.png"";
-        _image=  await File('${tempDir.path}/img').writeAsBytes(
-            buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+        _image=  await File('${tempDir.path}/img').writeAsBytes(buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
         doFaceDetection();
       }on Exception catch(_){
-
+        print("catch working...");
       }
     }
 
@@ -603,8 +576,13 @@ class FacePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (imageFile != null) {
-      canvas.drawImage(imageFile, Offset.zero, Paint());
+      Paint p = Paint();
+      p.color = Colors.red;
+      p.style = PaintingStyle.stroke;
+      p.strokeWidth = 3;
+      canvas.drawImage(imageFile, Offset.zero, p);
     }
+    print("hii"+imageFile.toString());
 
     Paint p = Paint();
     p.color = Colors.red;
@@ -621,7 +599,8 @@ class FacePainter extends CustomPainter {
     p3.strokeWidth = 1;
 
     for (Recognition rectangle in facesList) {
-      canvas.drawRect(rectangle.location, p);
+      print("heellllllllllll${rectangle.name}");
+      canvas.drawRect(rectangle.location, p2);
       TextSpan span = TextSpan(
           style: const TextStyle(color: Colors.white, fontSize: 90),
           text: "${rectangle.name}  ${rectangle.distance.toStringAsFixed(2)}");
@@ -679,7 +658,7 @@ class FaceDetectorPainter extends CustomPainter {
               : face.boundingBox.right * scaleX,
           face.boundingBox.bottom * scaleY,
         ),
-        paint,
+        p3,
       );
 
       // TextSpan span = TextSpan(

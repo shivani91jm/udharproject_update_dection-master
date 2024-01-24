@@ -18,7 +18,7 @@ class Recognizer {
   late TfLiteType _inputType;
   late TfLiteType _outputType;
   late var _probabilityProcessor;
-
+  Map<String,Recognition> registered = Map();
   @override
   String get modelName => 'mobile_face_net.tflite';
 
