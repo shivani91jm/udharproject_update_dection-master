@@ -36,6 +36,7 @@ import 'package:udharproject/model/StaffLoginModel/StaffMutipleStaffLoginModel.d
 import 'package:udharproject/model/StaffSalaryCCalculation/StaffSalryCalculationModel.dart';
 import 'package:udharproject/model/StateModelClass/StateModelClass.dart';
 import 'package:udharproject/model/SubScritonModel/SubScriptionModelClass.dart';
+import 'package:udharproject/model/stafflistattendance/StaffListDetailsFetchModel.dart';
 
 class BooksApi {
   static Future<List<Book>> getBooks(String query) async {
@@ -1602,7 +1603,92 @@ static Future<OTPModalClass> socialmedialverifyapi(String bussiness_man_id,Build
     }
     return _apiResponse;
   }
-
+//-----------------------fetch list attendance------------------------------
+  static Future<StaffListDetailsFetchModel> showStaffListAttendace(String business_man_id,String business_id,String token) async
+  {
+    StaffListDetailsFetchModel _apiResponse=new StaffListDetailsFetchModel();
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty)
+      {
+        final response = await http.post(Uri.parse(Urls.showAttendanceStaffList), headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+          body: jsonEncode(<String, String>{
+            'business_man_id': business_man_id,
+            'business_id': business_id
+          }),
+        );
+        if (response.statusCode == 200) {
+          print("data" + response.body.toString());
+          _apiResponse = StaffListDetailsFetchModel.fromJson(jsonDecode(response.body));
+        }
+        else if (response.statusCode == 401) {
+          print("data" + response.body.toString());
+          _apiResponse = StaffListDetailsFetchModel.fromJson(jsonDecode(response.body));
+         // Navigator.push(context, MaterialPageRoute(builder: (context) =>  LoginPage()),);
+        }
+        else if(response.statusCode==500)
+        {
+          _apiResponse = StaffListDetailsFetchModel.fromJson(jsonDecode(response.body));
+          Fluttertoast.showToast(
+              msg: "Server Side Error",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.deepPurpleAccent,
+              textColor: Colors.white,
+              fontSize: 16.0
+          );
+        }
+        else
+        {
+          print("data" + response.body.toString());
+          _apiResponse = StaffListDetailsFetchModel.fromJson(jsonDecode(response.body));
+        }
+      }
+    }
+    on SocketException catch (_) {
+      // showDialog(
+      //     context: context,
+      //     builder: (context) {
+      //       return AlertDialog(
+      //           title: Text("Checking..", style: TextStyle(
+      //             fontSize: 20.0,
+      //             fontStyle: FontStyle.normal,
+      //             fontWeight: FontWeight.bold,
+      //             color: Colors.green[700],
+      //           ),),
+      //           content: Text(
+      //             "No Internet", style: TextStyle(
+      //             fontSize: 20.0,
+      //             fontStyle: FontStyle.normal,
+      //             fontWeight: FontWeight.bold,
+      //             color: Colors.deepPurpleAccent,
+      //           ),),
+      //           actions: <Widget>[
+      //             new GestureDetector(
+      //               onTap: (){
+      //                 Navigator.push(context, MaterialPageRoute(builder: (context) =>  AddStaffScreenPage()),);
+      //               },
+      //               child: Padding(
+      //                 padding: const EdgeInsets.all(18.0),
+      //                 child: new Text("ok", style: TextStyle(
+      //                   fontSize: 20.0,
+      //                   fontStyle: FontStyle.normal,
+      //                   fontWeight: FontWeight.bold,
+      //                   color: Colors.deepPurpleAccent,
+      //                 ),),
+      //               ),
+      //             ),
+      //           ]);
+      //     }
+      // );
+    }
+    return _apiResponse;
+  }
 
 //---------------------------state model class------------------------------------------------------------------------
 

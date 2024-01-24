@@ -1,10 +1,13 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:image/src/image.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tflite_flutter_helper_plus/tflite_flutter_helper_plus.dart';
 import 'package:tflite_flutter_plus/tflite_flutter_plus.dart';
 import 'package:tflite_flutter_helper_plus/tflite_flutter_helper_plus.dart';
 import 'package:udharproject/Activity/SplashScreen.dart';
+import 'package:udharproject/Api/AllAPIBooking.dart';
+import 'package:udharproject/model/stafflistattendance/StaffInfoModel.dart';
 import 'Recognition.dart';
 import '../main.dart';
 
@@ -19,6 +22,7 @@ class Recognizer {
   late TfLiteType _outputType;
   late var _probabilityProcessor;
   Map<String,Recognition> registered = Map();
+
   @override
   String get modelName => 'mobile_face_net.tflite';
 
@@ -101,6 +105,42 @@ class Recognizer {
 
     return Recognition(pair.id,pair.name,location, _outputBuffer.getDoubleList(),pair.distance);
   }
+
+
+  void  loadstafflist() async
+  {
+
+    SharedPreferences prefsdf = await SharedPreferences.getInstance();
+    var token = prefsdf.getString("token").toString();
+    var user_id = prefsdf.getString("user_id").toString();
+    var bussiness_id = prefsdf.getString("bussiness_id").toString();
+    var _futureLogin = BooksApi.showStaffListAttendace(
+        user_id, bussiness_id, token);
+    if (_futureLogin != null) {
+      _futureLogin.then((value) async {
+        var res = value.response;
+        if (res == "true") {
+          if (value.info != null) {
+            List<StaffInfoModel> ? info = value.info;
+            for (int i = 0; i < info!.length; i++) {
+              List<double> embd = info[i].staffImage.toString().split(',')
+                  .map((e) => double.parse(e)).toList()
+                  .cast<double>();
+              var staff_id = info[i].staffId.toString();
+              var staff_name = info[i].staffName.toString();
+              Recognition recognition = Recognition(
+                  info[i].staffId.toString(), info[i].staffName.toString(),
+                  Rect.zero, embd, 0);
+              registered.putIfAbsent(staff_name, () => recognition);
+            }
+          }
+        }
+      });
+    }
+  }
+
+
+
 
  // TODO  looks for the nearest embeeding in the dataset
 //  and retrurns the pair <id, distance>

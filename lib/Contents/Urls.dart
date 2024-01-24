@@ -19,6 +19,7 @@ class Urls{
   static const String BusinessDetailsNullValue =Urls.BaseUrls+"update-business-details";
   static const String BusinessDetailsDelete =Urls.BaseUrls+"delete-business-details";
   static const String MothlyWiseStaffList =Urls.BaseUrls+"get-staff-besiness-wise";
+  static const String showAttendanceStaffList =Urls.BaseUrls+"get-staff-besiness-wise2";
   //================== update staff details============================================
   static const String UpdateStaffDetails =Urls.BaseUrls+"staff-update-details";
 
