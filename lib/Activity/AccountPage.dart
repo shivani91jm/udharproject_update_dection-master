@@ -27,6 +27,7 @@ import 'package:udharproject/Utils/AppContent.dart';
 import 'package:udharproject/Utils/Assets/Images/Images.dart';
 import 'package:udharproject/Utils/FontSize/AppSize.dart';
 import 'package:udharproject/Utils/Routesss/RoutesName.dart';
+import 'package:udharproject/main.dart';
 import 'package:udharproject/model/MonthlyWiseStaffListModel/Monthly.dart';
 import 'package:udharproject/model/SocialMediaLogin/SocialInfo.dart';
 import 'package:image/image.dart' as img;
@@ -47,7 +48,7 @@ class _AccountPageState extends State<AccountPage> {
   List<String> languageitemList = ['English', 'Hindi'];
   var language="";
   List<Recognition> recognitions = [];
-  late Recognizer _recognizer;
+   Recognizer? _recognizer;
   dynamic faceDetector;
   List<Monthly> getMonthlyConaList =[];
   var images;
@@ -67,16 +68,9 @@ class _AccountPageState extends State<AccountPage> {
   {
     // TODO: implement initState
     super.initState();
-    final options = FaceDetectorOptions(
-        enableClassification: false,
-        enableContours: false,
-        enableLandmarks: false);
-
-    //TODO initalize face detector
-    faceDetector = FaceDetector(options: options);
-
-    //TODO initalize face recognizer
-    _recognizer = Recognizer();
+    faceDetector =FaceDetector(options: FaceDetectorOptions(performanceMode: FaceDetectorMode.fast));
+    //TODO initialize face recognizer
+    _recognizer=Recognizer();
     showStaffListData();
     getValueOfSharedPrefrence();
     bussinessListData();
@@ -409,8 +403,12 @@ class _AccountPageState extends State<AccountPage> {
                                       splashColor: AppColors.drakColorTheme ,
                                       icon: Icon(Icons.arrow_forward_ios_rounded,color:  Colors.black38,),
                                       onPressed: () async{
-                                        await availableCameras().then((value) => Navigator.push(context,
-                                            MaterialPageRoute(builder: (_) => AutoDectionPage(cameras: value))));
+                                      var camera=  await availableCameras();
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) =>  AutoDectionPage(cameras: camera, recognizer: _recognizer,)),
+                                      );
+                                      // Navigator.push(context, MaterialPageRoute(builder: (_) => AutoDectionPage(cameras: value,_recognizer))));
                                         },
                                     ),
                                   ),
@@ -1254,7 +1252,7 @@ class _AccountPageState extends State<AccountPage> {
             Info ? info = value.info;
             getMonthlyConaList= info!.monthly!;
             if (getMonthlyConaList.isNotEmpty != null) {
-              storeimage();
+              //storeimage();
             }
           }
         }
@@ -1328,15 +1326,17 @@ class _AccountPageState extends State<AccountPage> {
                 left.toInt(), top.toInt(), width.toInt(), height.toInt());
             final bytes = await File(cropedFace!.path).readAsBytes();
             final img.Image? faceImg = img.decodeImage(bytes);
-            Recognition recognition = _recognizer.recognize(
+            Recognition recognition = _recognizer!.recognize(
                 faceImg!, face.boundingBox);
             if (recognition.distance > 1.25) {
               recognition.name = "Unknown";
             }
             recognitions.add(recognition);
-            _recognizer.registered.putIfAbsent(name.toString(), () =>
-            recognition
-            );
+
+            MyApp().registered.putIfAbsent(name.toString(), () => recognition);
+            // _recognizer.MyApp().registered.putIfAbsent(name.toString(), () =>
+            // recognition
+            // );
           }
         } on Exception catch (_) {
           print("catch working...");
@@ -1378,7 +1378,7 @@ class _AccountPageState extends State<AccountPage> {
           left.toInt(),top.toInt(),width.toInt(),height.toInt());
       final bytes = await File(cropedFace!.path).readAsBytes();
       final img.Image? faceImg = img.decodeImage(bytes);
-      Recognition recognition = _recognizer.recognize(faceImg!, face.boundingBox);
+      Recognition recognition = _recognizer!.recognize(faceImg!, face.boundingBox);
       if(recognition.distance>1.25) {
         recognition.name = "Unknown";
       }

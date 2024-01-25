@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:udharproject/ML/Recognition.dart';
 import 'package:udharproject/Utils/MutipleLanguage/MutipleLangaugePage.dart';
 import 'package:udharproject/Utils/Routesss/RoutesName.dart';
 import 'package:udharproject/Utils/Routesss/RoutesPages.dart';
@@ -10,11 +11,12 @@ import 'package:device_preview/device_preview.dart';
 
 void main() async
 {
+
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(DevicePreview(
     enabled: true,
-    builder: (context) => const MyApp(),
+    builder: (context) =>  MyApp(),
   ));
 
 
@@ -24,9 +26,12 @@ void main() async
 
 }
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+
+   MyApp({Key? key}) : super(key: key);
+  Map<String,Recognition> registered = Map();
   @override
   Widget build(BuildContext context) {
+
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp,DeviceOrientation.portraitDown]);
     return GestureDetector(onTap: () {
       FocusScopeNode currentFocus = FocusScope.of(context);

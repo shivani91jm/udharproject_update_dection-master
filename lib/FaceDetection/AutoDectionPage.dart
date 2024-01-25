@@ -26,7 +26,9 @@ import 'package:http/http.dart' as http;
 
 class AutoDectionPage extends StatefulWidget {
   final List<CameraDescription>? cameras;
-  const AutoDectionPage({Key? key,required this.cameras}) : super(key: key);
+  final Recognizer? recognizer;
+
+   AutoDectionPage({Key? key,required this.cameras,required this.recognizer}) : super(key: key);
 
   @override
   State<AutoDectionPage> createState() => _HomePageState();
@@ -45,7 +47,7 @@ class _HomePageState extends State<AutoDectionPage> {
   dynamic faceDetector;
   bool _isRearCameraSelected = true;
   //TODO declare face recognizer
-  late Recognizer _recognizer;
+
   bool isDetecting = false;
   CameraImage? cameraImage;
   dynamic _scanResults;
@@ -61,18 +63,12 @@ class _HomePageState extends State<AutoDectionPage> {
     imagePicker = ImagePicker();
 
     //TODO initialize detector
-    final options = FaceDetectorOptions(
-        enableClassification: false,
-        enableContours: false,
-        enableLandmarks: false);
-
-    //TODO initalize face detector
-    faceDetector = FaceDetector(options: options);
+    faceDetector =FaceDetector(options: FaceDetectorOptions(performanceMode: FaceDetectorMode.fast));
 
     //TODO initalize face recognizer
-    _recognizer = Recognizer();
+   // widget.recognizer = Recognizer();
  //   showStaffListData();
-    initCamera(widget.cameras![1]);
+     initCamera(widget.cameras![1]);
   }
   void showStaffListData() async{
     _isLoading=true;
@@ -183,10 +179,10 @@ class _HomePageState extends State<AutoDectionPage> {
             }
             performFaceRecognition2(cropImage,context);
 
-            setState(() {
-              _scanResults = cropImage;
-              isDetecting = false;
-            });
+            // setState(() {
+            //   _scanResults = cropImage;
+            //   isDetecting = false;
+            // });
 
           }
         });
@@ -200,16 +196,13 @@ class _HomePageState extends State<AutoDectionPage> {
     if (_scanResults == null ||
         _cameraController == null ||
         !_cameraController.value.isInitialized) {
-      return Container(
-          color: Colors.black,
-          child: const Center(child: CircularProgressIndicator()));
+      return const Center(child: Text('Camera is not initialized'));
     }
     final Size imageSize = Size(
       _cameraController.value.previewSize!.height,
       _cameraController.value.previewSize!.width,
     );
-    CustomPainter painter = FacePainter(facesList: recognitions, imageFile: images);
-
+    CustomPainter painter = FaceDetectorPainter(imageSize, _scanResults, camDirec);
     return CustomPaint(
       painter: painter,
     );
@@ -271,11 +264,11 @@ class _HomePageState extends State<AutoDectionPage> {
     //TODO passing input to face detector and getting detected faces
     final inputImage = InputImage.fromFile(_image!);
     faces = await faceDetector.processImage(inputImage);
-    setState(() {
-      _scanResults=faces;
-    });
+    // setState(() {
+    //   _scanResults=faces;
+    // });
     //TODO call the method to perform face recognition on detected faces
-    performFaceRecognition();
+   // performFaceRecognition2(faces);
 
 
   }
@@ -310,7 +303,7 @@ class _HomePageState extends State<AutoDectionPage> {
           left.toInt(),top.toInt(),width.toInt(),height.toInt());
       final bytes = await File(cropedFace!.path).readAsBytes();
       final img.Image? faceImg = img.decodeImage(bytes);
-      Recognition recognition = _recognizer.recognize(faceImg!, face.boundingBox);
+      Recognition recognition = widget.recognizer!.recognize(faceImg!, face.boundingBox);
       if(recognition.distance>1) {
         recognition.name = "Unknown";
       }
@@ -399,7 +392,7 @@ class _HomePageState extends State<AutoDectionPage> {
                     Expanded(
                         child: IconButton(
                           onPressed: (){
-                          //  register = true;
+                           register = true;
 
                           },
                           iconSize: 50,
@@ -430,25 +423,22 @@ class _HomePageState extends State<AutoDectionPage> {
 
     //TODO convert CameraImage to Image and rotate it so that our frame will be in a portrait
     image = convertYUV420ToImage(cameraImage!);
-    image =img.copyRotate(image!, camDirec == CameraLensDirection.front?270:90);
+    image =img.copyRotate(image!, angle: camDirec == CameraLensDirection.front?270:90);
 
     for (Face face in faces) {
       Rect faceRect = face.boundingBox;
       //TODO crop face
-      img.Image cropimage = img.copyCrop(image!, faceRect.left.toInt(),faceRect.top.toInt(),faceRect.width.toInt(),faceRect.height.toInt());
-
+     // img.Image cropimage = img.copyCrop(image!, faceRect.left.toInt(),faceRect.top.toInt(),faceRect.width.toInt(),faceRect.height.toInt());
+      img.Image cropimage = img.copyCrop(image!, x:faceRect.left.toInt(),y:faceRect.top.toInt(),width:faceRect.width.toInt(),height:faceRect.height.toInt());
       //TODO pass cropped face to face recognition model
-      Recognition recognition = _recognizer.recognize(cropimage, faceRect);
+      print("vvb");
+      Recognition recognition = widget.recognizer!.recognize(cropimage, faceRect);
 
       if(recognition.distance>1.25){
         recognition.name = "Unknown";
       }
       recognitions.add(recognition);
 
-      setState(() {
-        isDetecting  = false;
-        _scanResults = cropimage;
-      });
       //TODO show face registration dialogue
       if(register){
         print("if gdhjd workinh");
@@ -460,7 +450,12 @@ class _HomePageState extends State<AutoDectionPage> {
         print("else workinh");
       }
 
+
     }
+    setState(() {
+      isDetecting  = false;
+      _scanResults = recognitions;
+    });
   }
 
   showFaceRegistrationDialogue(img.Image croppedFace, Recognition recognition, BuildContext context){
@@ -511,7 +506,7 @@ class _HomePageState extends State<AutoDectionPage> {
     final uvRowStride = cameraImage.planes[1].bytesPerRow;
     final uvPixelStride = cameraImage.planes[1].bytesPerPixel!;
 
-    final image = img.Image(width, height);
+    final image = img.Image(width:width, height:height);
 
     for (var w = 0; w < width; w++) {
       for (var h = 0; h < height; h++) {
@@ -524,9 +519,11 @@ class _HomePageState extends State<AutoDectionPage> {
         final u = cameraImage.planes[1].bytes[uvIndex];
         final v = cameraImage.planes[2].bytes[uvIndex];
 
-        image.data[index] = yuv2rgb(y, u, v);
+        image.data!.setPixelR(w, h, yuv2rgb(y, u, v));//= yuv2rgb(y, u, v);
       }
+
     }
+
     return image;
   }
   int yuv2rgb(int y, int u, int v) {
@@ -624,7 +621,7 @@ class FaceDetectorPainter extends CustomPainter {
   FaceDetectorPainter(this.absoluteImageSize, this.faces, this.camDire2);
 
   final Size absoluteImageSize;
-  final List<Face> faces;
+  final List<Recognition> faces;
   CameraLensDirection camDire2;
 
   @override
@@ -646,30 +643,30 @@ class FaceDetectorPainter extends CustomPainter {
     p3.style = PaintingStyle.stroke;
     p3.strokeWidth = 1;
 
-    for (Face face in faces) {
+    for (Recognition face in faces) {
       canvas.drawRect(
         Rect.fromLTRB(
           camDire2 == CameraLensDirection.front
-              ? (absoluteImageSize.width - face.boundingBox.right) * scaleX
-              : face.boundingBox.left * scaleX,
-          face.boundingBox.top * scaleY,
+              ? (absoluteImageSize.width - face.location.right) * scaleX
+              : face.location.left * scaleX,
+          face.location.top * scaleY,
           camDire2 == CameraLensDirection.front
-              ? (absoluteImageSize.width - face.boundingBox.left) * scaleX
-              : face.boundingBox.right * scaleX,
-          face.boundingBox.bottom * scaleY,
+              ? (absoluteImageSize.width - face.location.left) * scaleX
+              : face.location.right * scaleX,
+          face.location.bottom * scaleY,
         ),
         p3,
       );
 
-      // TextSpan span = TextSpan(
-      //     style: const TextStyle(color: Colors.white, fontSize: 20),
-      //     text: "${face.name}  ${face!.distance.toStringAsFixed(2)}");
-      // TextPainter tp = TextPainter(
-      //     text: span,
-      //     textAlign: TextAlign.left,
-      //     textDirection: TextDirection.ltr);
-      // tp.layout();
-      // tp.paint(canvas, Offset(face.location.left*scaleX, face.location.top*scaleY));
+      TextSpan span = TextSpan(
+          style: const TextStyle(color: Colors.white, fontSize: 20),
+          text: "${face.name}  ${face!.distance.toStringAsFixed(2)}");
+      TextPainter tp = TextPainter(
+          text: span,
+          textAlign: TextAlign.left,
+          textDirection: TextDirection.ltr);
+      tp.layout();
+      tp.paint(canvas, Offset(face.location.left*scaleX, face.location.top*scaleY));
     }
 
   }
