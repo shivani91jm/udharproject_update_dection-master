@@ -518,7 +518,7 @@ class _AddStaffScreenPageState extends State<AddStaffScreenPage> {
        itemCount: getWeeklyConList.length,
        itemBuilder: (BuildContext context, int index) {
          return ListTile(
-             onTap: () async{
+             onTap: () async {
                var staffname=getWeeklyConList[index].staffName.toString();
                var stsffId=getWeeklyConList[index].staffId.toString();
                var stafftotal_amount=getWeeklyConList[index].total_money_status.toString();

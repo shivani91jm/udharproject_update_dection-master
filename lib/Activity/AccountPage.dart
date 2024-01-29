@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_native_image/flutter_native_image.dart';
+
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -19,10 +19,11 @@ import 'package:udharproject/Activity/LoginPage.dart';
 import 'package:udharproject/Activity/ManngeBusinessList.dart';
 import 'package:udharproject/Api/AllAPIBooking.dart';
 import 'package:udharproject/Colors/ColorsClass.dart';
+import 'package:udharproject/FaceDetection/AuthenticateFaceView.dart';
 import 'package:udharproject/FaceDetection/AutoDectionPage.dart';
 import 'package:udharproject/FaceDetection/RecognitionScreen.dart';
 import 'package:udharproject/ML/Recognition.dart';
-import 'package:udharproject/ML/Recognizer.dart';
+
 import 'package:udharproject/Utils/AppContent.dart';
 import 'package:udharproject/Utils/Assets/Images/Images.dart';
 import 'package:udharproject/Utils/FontSize/AppSize.dart';
@@ -48,7 +49,7 @@ class _AccountPageState extends State<AccountPage> {
   List<String> languageitemList = ['English', 'Hindi'];
   var language="";
   List<Recognition> recognitions = [];
-   Recognizer? _recognizer;
+
   dynamic faceDetector;
   List<Monthly> getMonthlyConaList =[];
   var images;
@@ -68,9 +69,7 @@ class _AccountPageState extends State<AccountPage> {
   {
     // TODO: implement initState
     super.initState();
-    faceDetector =FaceDetector(options: FaceDetectorOptions(performanceMode: FaceDetectorMode.fast));
-    //TODO initialize face recognizer
-    _recognizer=Recognizer();
+
     showStaffListData();
     getValueOfSharedPrefrence();
     bussinessListData();
@@ -406,9 +405,9 @@ class _AccountPageState extends State<AccountPage> {
                                       var camera=  await availableCameras();
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) =>  AutoDectionPage(cameras: camera, recognizer: _recognizer,)),
+                                        MaterialPageRoute(builder: (context) =>  AuthenticateFaceView()),
                                       );
-                                      // Navigator.push(context, MaterialPageRoute(builder: (_) => AutoDectionPage(cameras: value,_recognizer))));
+                                      // Navigator.push(context, MaterialPageRoute(builder: (_) => AutoDectionPage(cameras: camera)));
                                         },
                                     ),
                                   ),
@@ -1307,37 +1306,8 @@ class _AccountPageState extends State<AccountPage> {
           images = await decodeImageFromList(images);
           print("${images.width}   ${images.height}");
 
-          //  recognitions.clear();
-          for (Face face in faces) {
-            Rect faceRect = face.boundingBox;
-            num left = faceRect.left < 0 ? 0 : faceRect.left;
-            num top = faceRect.top < 0 ? 0 : faceRect.top;
-            num right = faceRect.right > images.width
-                ? images.width - 1
-                : faceRect.right;
-            num bottom = faceRect.bottom > images.height
-                ? images.height - 1
-                : faceRect.bottom;
-            num width = right - left;
-            num height = bottom - top;
 
-            //TODO crop face
-            File cropedFace = await FlutterNativeImage.cropImage(_image!.path,
-                left.toInt(), top.toInt(), width.toInt(), height.toInt());
-            final bytes = await File(cropedFace!.path).readAsBytes();
-            final img.Image? faceImg = img.decodeImage(bytes);
-            Recognition recognition = _recognizer!.recognize(
-                faceImg!, face.boundingBox);
-            if (recognition.distance > 1.25) {
-              recognition.name = "Unknown";
-            }
-            recognitions.add(recognition);
 
-            MyApp().registered.putIfAbsent(name.toString(), () => recognition);
-            // _recognizer.MyApp().registered.putIfAbsent(name.toString(), () =>
-            // recognition
-            // );
-          }
         } on Exception catch (_) {
           print("catch working...");
         }
@@ -1356,37 +1326,7 @@ class _AccountPageState extends State<AccountPage> {
     return await File(_image!.path).writeAsBytes(img.encodeJpg(orientedImage));
   }
 
-  //TODO perform Face Recognition
-  performFaceRecognition() async {
 
-    images = await _image?.readAsBytes();
-    images = await decodeImageFromList(images);
-    print("${images.width}   ${images.height}");
-
-    recognitions.clear();
-    for (Face face in faces) {
-      Rect faceRect = face.boundingBox;
-      num left = faceRect.left<0?0:faceRect.left;
-      num top = faceRect.top<0?0:faceRect.top;
-      num right = faceRect.right>images.width?images.width-1:faceRect.right;
-      num bottom = faceRect.bottom>images.height?images.height-1:faceRect.bottom;
-      num width = right - left;
-      num height = bottom - top;
-
-      //TODO crop face
-      File cropedFace = await FlutterNativeImage.cropImage(_image!.path,
-          left.toInt(),top.toInt(),width.toInt(),height.toInt());
-      final bytes = await File(cropedFace!.path).readAsBytes();
-      final img.Image? faceImg = img.decodeImage(bytes);
-      Recognition recognition = _recognizer!.recognize(faceImg!, face.boundingBox);
-      if(recognition.distance>1.25) {
-        recognition.name = "Unknown";
-      }
-      // recognitions.add(recognition);
-      //  _recognizer.registered.putIfAbsent(, () => recognition);
-    }
-    drawRectangleAroundFaces();
-  }
 
   //TODO draw rectangles
   drawRectangleAroundFaces() async {

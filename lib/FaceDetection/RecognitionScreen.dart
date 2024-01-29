@@ -4,7 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_native_image/flutter_native_image.dart';
+
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,7 +14,7 @@ import 'package:udharproject/Activity/DashBoard.dart';
 import 'package:udharproject/Api/AllAPIBooking.dart';
 
 import 'package:udharproject/ML/Recognition.dart';
-import 'package:udharproject/ML/Recognizer.dart';
+
 class RecognitionScreen extends StatefulWidget {
   final List<CameraDescription>? cameras;
   const RecognitionScreen({Key? key,required this.cameras}) : super(key: key);
@@ -35,8 +35,7 @@ class _HomePageState extends State<RecognitionScreen> {
   //TODO declare detector
   dynamic faceDetector;
   bool _isRearCameraSelected = true;
-  //TODO declare face recognizer
-  late Recognizer _recognizer;
+
   bool isDetecting = false;
   CameraImage? cameraImage;
   dynamic _scanResults;
@@ -59,7 +58,7 @@ class _HomePageState extends State<RecognitionScreen> {
     faceDetector = FaceDetector(options: options);
 
     //TODO initalize face recognizer
-    _recognizer = Recognizer();
+
     initCamera(widget.cameras![1]);
   }
   Future initCamera(CameraDescription cameraDescription) async {
@@ -74,58 +73,7 @@ class _HomePageState extends State<RecognitionScreen> {
             {
               isDetecting=true;
               cameraImage=image;
-              print("object"+cameraImage!.format.toString());
 
-              final WriteBuffer allBytes = WriteBuffer();
-              for (final Plane plane in cameraImage!.planes) {
-                allBytes.putUint8List(plane.bytes);
-              }
-              final bytes = allBytes
-                  .done()
-                  .buffer
-                  .asUint8List();
-              final Size imageSize = Size(
-                  cameraImage!.width.toDouble(), cameraImage!.height.toDouble());
-              final camera = widget.cameras![1];
-              final imageRotation = InputImageRotationValue.fromRawValue(
-                  camera.sensorOrientation);
-              // if (imageRotation == null) return;
-
-              final inputImageFormat = InputImageFormatValue.fromRawValue(
-                  cameraImage!.format.raw);
-              // if (inputImageFormat == null) return null;
-
-              final planeData = cameraImage!.planes.map(
-                    (Plane plane) {
-                  return InputImagePlaneMetadata(
-                    bytesPerRow: plane.bytesPerRow,
-                    height: plane.height,
-                    width: plane.width,
-                  );
-                },
-              ).toList();
-
-              final inputImageData = InputImageData(
-                size: imageSize,
-                imageRotation: imageRotation!,
-                inputImageFormat: inputImageFormat!,
-                planeData: planeData,
-              );
-
-              final inputImage = InputImage.fromBytes(
-                  bytes: bytes, inputImageData: inputImageData);
-
-              List<Face> cropImage = await faceDetector.processImage(inputImage);
-              for(Face face in cropImage)
-              {
-                print("count=${(face.boundingBox.toString())}");
-              }
-           //   performFaceRecognition(cropImage,context);
-
-              setState(() {
-                _scanResults = cropImage;
-                isDetecting = false;
-              });
 
             }
         });
@@ -163,33 +111,19 @@ class _HomePageState extends State<RecognitionScreen> {
       await _cameraController.setFlashMode(FlashMode.off);
       XFile picture = await _cameraController.takePicture();
       print("gvg"+picture.toString());
+
     } on CameraException catch (e) {
       debugPrint('Error occured while taking picture: $e');
       return null;
     }
   }
 
-  //TODO capture image using camera
-  _imgFromCamera() async {
-    XFile? pickedFile = await imagePicker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      _image = File(pickedFile.path);
-      doFaceDetection();
-    }
-  }
+
   @override
   void dispose() {
     // Dispose of the controller when the widget is disposed.
     _cameraController.dispose();
     super.dispose();
-  }
-  //TODO choose image using gallery
-  _imgFromGallery() async {
-    XFile? pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      _image = File(pickedFile.path);
-      doFaceDetection();
-    }
   }
 
 
@@ -216,37 +150,7 @@ class _HomePageState extends State<RecognitionScreen> {
     return await File(_image!.path).writeAsBytes(img.encodeJpg(orientedImage));
   }
 
-  //TODO perform Face Recognition
-  // performFaceRecognition() async {
-  //
-  //   image = await _image?.readAsBytes();
-  //
-  //   image = await decodeImageFromList(image);
-  //   print("${image.width}   ${image.height}");
-  //
-  //   recognitions.clear();
-  //   for (Face face in faces) {
-  //     Rect faceRect = face.boundingBox;
-  //     num left = faceRect.left<0?0:faceRect.left;
-  //     num top = faceRect.top<0?0:faceRect.top;
-  //     num right = faceRect.right>image.width?image.width-1:faceRect.right;
-  //     num bottom = faceRect.bottom>image.height?image.height-1:faceRect.bottom;
-  //     num width = right - left;
-  //     num height = bottom - top;
-  //
-  //     //TODO crop face
-  //     File cropedFace = await FlutterNativeImage.cropImage(_image!.path,
-  //         left.toInt(),top.toInt(),width.toInt(),height.toInt());
-  //     final bytes = await File(cropedFace!.path).readAsBytes();
-  //     final img.Image? faceImg = img.decodeImage(bytes);
-  //     Recognition recognition = _recognizer.recognize(faceImg!, face.boundingBox);
-  //     if(recognition.distance>1) {
-  //       recognition.name = "Unknown";
-  //     }
-  //     recognitions.add(recognition);
-  //   }
-  //   drawRectangleAroundFaces();
-  // }
+
 
   //TODO draw rectangles
   drawRectangleAroundFaces() async {

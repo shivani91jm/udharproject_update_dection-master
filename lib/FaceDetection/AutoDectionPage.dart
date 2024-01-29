@@ -1,14 +1,15 @@
+import 'dart:convert';
+import 'dart:developer';
+
+import 'package:audioplayers/audioplayers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_native_image/flutter_native_image.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:get/get_connect/http/src/response/response.dart';
-import 'package:get/get_connect/http/src/response/response.dart';
-import 'package:get/get_rx/get_rx.dart';
 
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
@@ -16,19 +17,32 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:udharproject/Api/AllAPIBooking.dart';
 import 'package:udharproject/Colors/ColorsClass.dart';
+import 'package:udharproject/FaceDetection/extract_face_feature.dart';
+import 'package:udharproject/FaceDetection/scanning_animation/animated_view.dart';
+import 'package:udharproject/FaceDetection/user_details_view.dart';
 
 import 'package:udharproject/ML/Recognition.dart';
-import 'package:udharproject/ML/Recognizer.dart';
+import 'package:udharproject/ML/user_model.dart';
+import 'package:udharproject/Utils/FontSize/size_extension.dart';
+import 'package:udharproject/Utils/custom_snackbar.dart';
+
 import 'package:udharproject/model/MonthlyWiseStaffListModel/Monthly.dart';
 
 import '../model/MonthlyWiseStaffListModel/Info.dart';
 import 'package:http/http.dart' as http;
+import 'dart:math' as math;
+
+import 'package:audioplayers/audioplayers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'package:flutter/services.dart';
+import 'package:flutter_face_api/face_api.dart' as regula;
 
 class AutoDectionPage extends StatefulWidget {
   final List<CameraDescription>? cameras;
-  final Recognizer? recognizer;
 
-   AutoDectionPage({Key? key,required this.cameras,required this.recognizer}) : super(key: key);
+
+   AutoDectionPage({Key? key,required this.cameras}) : super(key: key);
 
   @override
   State<AutoDectionPage> createState() => _HomePageState();
@@ -46,8 +60,7 @@ class _HomePageState extends State<AutoDectionPage> {
   //TODO declare detector
   dynamic faceDetector;
   bool _isRearCameraSelected = true;
-  //TODO declare face recognizer
-
+  final AudioPlayer _audioPlayer = AudioPlayer();
   bool isDetecting = false;
   CameraImage? cameraImage;
   dynamic _scanResults;
@@ -56,68 +69,39 @@ class _HomePageState extends State<AutoDectionPage> {
   bool _isLoading=false;
   List<Monthly> getMonthlyConaList =[];
   var images;
+  bool isMatching = false;
+  FaceFeatures? _faceFeatures;
+  var image1 = regula.MatchFacesImage();
+  var image2 = regula.MatchFacesImage();
 
+  final TextEditingController _nameController = TextEditingController();
+  String _similarity = "";
+  bool _canAuthenticate = false;
+  List<dynamic> users = [];
+  bool userExists = false;
+  UserModel? loggingUser;
+
+  int trialNumber = 1;
+  get _playScanningAudio => _audioPlayer
+    ..setReleaseMode(ReleaseMode.loop)
+    ..play(AssetSource("scan_beep.wav"));
+
+  get _playFailedAudio => _audioPlayer
+    ..stop()
+    ..setReleaseMode(ReleaseMode.release)
+    ..play(AssetSource("failed.mp3"));
   @override
   void initState() {
     super.initState();
     imagePicker = ImagePicker();
 
     //TODO initialize detector
-    faceDetector =FaceDetector(options: FaceDetectorOptions(performanceMode: FaceDetectorMode.fast));
+    faceDetector =FaceDetector(options: FaceDetectorOptions(performanceMode: FaceDetectorMode.accurate));
 
-    //TODO initalize face recognizer
-   // widget.recognizer = Recognizer();
- //   showStaffListData();
+
      initCamera(widget.cameras![1]);
   }
-  void showStaffListData() async{
-    _isLoading=true;
-    SharedPreferences prefsdf = await SharedPreferences.getInstance();
-    var   token= prefsdf.getString("token").toString();
-    var user_id = prefsdf.getString("user_id").toString();
-    var bussiness_id=prefsdf.getString("bussiness_id").toString();
-    var _futureLogin = BooksApi.ShowStffListAccordingToMonthly(user_id,bussiness_id, token, context);
-    if (_futureLogin != null) {
-      _futureLogin.then((value) async{
-        var res = value.response;
-        if (res == "true") {
-          if (value.info!= null) {
-            _isLoading=false;
-            Info ? info = value.info;
-            getMonthlyConaList= info!.monthly!;
-            if (getMonthlyConaList.isNotEmpty != null) {
-                storeimage();
-            }
-          }
-        }
-        else
-        {
-          setState(() {
-            _isLoading=false;
-          });
-        }
-      });
-    }
-    else {
-      _futureLogin.then((value) {
-        String data = value.msg.toString();
 
-        setState(() {
-          _isLoading=true;
-          // staffListFlag=true;
-        });
-        Fluttertoast.showToast(
-            msg: "" + data,
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.CENTER,
-            timeInSecForIosWeb: 1,
-            backgroundColor: AppColors.drakColorTheme,
-            textColor: AppColors.white,
-            fontSize: 16.0
-        );
-      });
-    }
-  }
   Future initCamera(CameraDescription cameraDescription) async {
 // create a CameraController
     _cameraController = CameraController(
@@ -131,58 +115,7 @@ class _HomePageState extends State<AutoDectionPage> {
           {
             isDetecting=true;
             cameraImage=image;
-            print("object"+cameraImage!.format.toString());
 
-            final WriteBuffer allBytes = WriteBuffer();
-            for (final Plane plane in cameraImage!.planes) {
-              allBytes.putUint8List(plane.bytes);
-            }
-            final bytes = allBytes
-                .done()
-                .buffer
-                .asUint8List();
-            final Size imageSize = Size(
-                cameraImage!.width.toDouble(), cameraImage!.height.toDouble());
-            final camera = widget.cameras![1];
-            final imageRotation = InputImageRotationValue.fromRawValue(
-                camera.sensorOrientation);
-            // if (imageRotation == null) return;
-
-            final inputImageFormat = InputImageFormatValue.fromRawValue(
-                cameraImage!.format.raw);
-            // if (inputImageFormat == null) return null;
-
-            final planeData = cameraImage!.planes.map(
-                  (Plane plane) {
-                return InputImagePlaneMetadata(
-                  bytesPerRow: plane.bytesPerRow,
-                  height: plane.height,
-                  width: plane.width,
-                );
-              },
-            ).toList();
-
-            final inputImageData = InputImageData(
-              size: imageSize,
-              imageRotation: imageRotation!,
-              inputImageFormat: inputImageFormat!,
-              planeData: planeData,
-            );
-
-            final inputImage = InputImage.fromBytes(
-                bytes: bytes, inputImageData: inputImageData);
-
-            List<Face> cropImage = await faceDetector.processImage(inputImage);
-            for(Face face in cropImage)
-            {
-              print("count=${(face.boundingBox.toString())}");
-            }
-            performFaceRecognition2(cropImage,context);
-
-            // setState(() {
-            //   _scanResults = cropImage;
-            //   isDetecting = false;
-            // });
 
           }
         });
@@ -202,10 +135,25 @@ class _HomePageState extends State<AutoDectionPage> {
       _cameraController.value.previewSize!.height,
       _cameraController.value.previewSize!.width,
     );
-    CustomPainter painter = FaceDetectorPainter(imageSize, _scanResults, camDirec);
-    return CustomPaint(
-      painter: painter,
-    );
+    // CustomPainter painter = FaceDetectorPainter(imageSize, _scanResults, camDirec);
+    // return CustomPaint(
+    //   painter: painter,
+    // );
+    if (isMatching)
+     return Align(
+        alignment: Alignment.center,
+        child: Padding(
+          padding: EdgeInsets.only(top: 0.064.sh),
+          child: const AnimatedView(),
+        ),
+      );
+    return Align(
+        alignment: Alignment.center,
+        child: Padding(
+          padding: EdgeInsets.only(top: 0.064.sh),
+          child: const AnimatedView(),
+        ),
+      );
   }
   Future takePicture() async {
     if (!_cameraController.value.isInitialized) {
@@ -218,9 +166,26 @@ class _HomePageState extends State<AutoDectionPage> {
       await _cameraController.setFlashMode(FlashMode.off);
       XFile picture = await _cameraController.takePicture();
       print("gvg"+picture.toString());
-      _image=picture as File;
+    //  _image=picture as File;
       _image=   File(picture.path);
-     doFaceDetection();
+
+
+      Uint8List imageBytes = _image!.readAsBytesSync();
+     // widget.onImage(imageBytes);
+      image2.bitmap = base64Encode(imageBytes);
+      image2.imageType = regula.ImageType.PRINTED;
+      InputImage inputImage = InputImage.fromFilePath(picture.path);
+      setState(() => isMatching = true);
+      _faceFeatures = await extractFaceFeatures(
+          inputImage, faceDetector);
+      setState(() => isMatching = false);
+      if(_canAuthenticate)
+      {
+        setState(() => isMatching = true);
+        _playScanningAudio;
+        _fetchUsersAndMatchFace();
+      }
+
 
     } on CameraException catch (e) {
       debugPrint('Error occured while taking picture: $e');
@@ -228,97 +193,17 @@ class _HomePageState extends State<AutoDectionPage> {
     }
   }
 
-  //TODO capture image using camera
-  _imgFromCamera() async {
-    XFile? pickedFile = await imagePicker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      _image = File(pickedFile.path);
-     // doFaceDetection();
-    }
-  }
+
   @override
   void dispose() {
     // Dispose of the controller when the widget is disposed.
     _cameraController.dispose();
     super.dispose();
   }
-  //TODO choose image using gallery
-  _imgFromGallery() async {
-    XFile? pickedFile =
-    await imagePicker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      _image = File(pickedFile.path);
-     // doFaceDetection();
-    }
-  }
 
 
-  //TODO face detection code here
-  TextEditingController textEditingController = TextEditingController();
-  doFaceDetection() async {
-    faces.clear();
-
-    //TODO remove rotation of camera images
-    _image = await removeRotation(_image!);
-
-    //TODO passing input to face detector and getting detected faces
-    final inputImage = InputImage.fromFile(_image!);
-    faces = await faceDetector.processImage(inputImage);
-    // setState(() {
-    //   _scanResults=faces;
-    // });
-    //TODO call the method to perform face recognition on detected faces
-   // performFaceRecognition2(faces);
 
 
-  }
-
-  //TODO remove rotation of camera images
-  removeRotation(File inputImage) async {
-    final img.Image? capturedImage = img.decodeImage(await File(inputImage!.path).readAsBytes());
-    final img.Image orientedImage = img.bakeOrientation(capturedImage!);
-    return await File(_image!.path).writeAsBytes(img.encodeJpg(orientedImage));
-  }
-
-  //TODO perform Face Recognition
-  performFaceRecognition() async {
-
-    images = await _image?.readAsBytes();
-
-    images = await decodeImageFromList(images);
-    print("${images.width}   ${images.height}");
-
-    recognitions.clear();
-    for (Face face in faces) {
-      Rect faceRect = face.boundingBox;
-      num left = faceRect.left<0?0:faceRect.left;
-      num top = faceRect.top<0?0:faceRect.top;
-      num right = faceRect.right>images.width?images.width-1:faceRect.right;
-      num bottom = faceRect.bottom>images.height?images.height-1:faceRect.bottom;
-      num width = right - left;
-      num height = bottom - top;
-
-      //TODO crop face
-      File cropedFace = await FlutterNativeImage.cropImage(_image!.path,
-          left.toInt(),top.toInt(),width.toInt(),height.toInt());
-      final bytes = await File(cropedFace!.path).readAsBytes();
-      final img.Image? faceImg = img.decodeImage(bytes);
-      Recognition recognition = widget.recognizer!.recognize(faceImg!, face.boundingBox);
-      if(recognition.distance>1) {
-        recognition.name = "Unknown";
-      }
-      recognitions.add(recognition);
-    }
-    drawRectangleAroundFaces();
-  }
-
-  //TODO draw rectangles
-  drawRectangleAroundFaces() async {
-    setState(() {
-      images;
-      faces;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -348,14 +233,14 @@ class _HomePageState extends State<AutoDectionPage> {
       );
 
       // //TODO View for displaying rectangles around detected aces
-      stackChildren.add(
-        Positioned(
-            top: 0.0,
-            left: 0.0,
-            width: size.width,
-            height: size.height,
-            child: buildResult()),
-      );
+      // stackChildren.add(
+      //   Positioned(
+      //       top: 0.0,
+      //       left: 0.0,
+      //       width: size.width,
+      //       height: size.height,
+      //       child: buildResult()),
+      // );
     }
     stackChildren.add(Positioned(
       top: size.height - 140,
@@ -392,7 +277,12 @@ class _HomePageState extends State<AutoDectionPage> {
                     Expanded(
                         child: IconButton(
                           onPressed: (){
-                           register = true;
+                            if(_canAuthenticate)
+                            {
+                              setState(() => isMatching = true);
+                              _playScanningAudio;
+                              _fetchUsersAndMatchFace();
+                            }
 
                           },
                           iconSize: 50,
@@ -416,207 +306,266 @@ class _HomePageState extends State<AutoDectionPage> {
             children: stackChildren
         ));
   }
-  img.Image? image;
-  bool register = false;
-  performFaceRecognition2(List<Face> faces,BuildContext context) async {
-    recognitions.clear();
+  _fetchUsersAndMatchFace() {
+    FirebaseFirestore.instance.collection("users").get().catchError((e) {
+      log("Getting User Error: $e");
+      setState(() => isMatching = false);
+      _playFailedAudio;
+      CustomSnackBar.errorSnackBar("Something went wrong. Please try again.");
+    }).then((snap) {
+      if (snap.docs.isNotEmpty) {
+        users.clear();
+        log(snap.docs.length.toString(), name: "Total Registered Users");
+        for (var doc in snap.docs) {
+          UserModel user = UserModel.fromJson(doc.data());
+          double similarity = compareFaces(_faceFeatures!, user.faceFeatures!);
+          if (similarity >= 0.8 && similarity <= 1.5) {
+            users.add([user, similarity]);
+          }
+        }
+        log(users.length.toString(), name: "Filtered Users");
+        setState(() {
+          //Sorts the users based on the similarity.
+          //More similar face is put first.
+          users.sort((a, b) => (((a.last as double) - 1).abs())
+              .compareTo(((b.last as double) - 1).abs()));
+        });
 
-    //TODO convert CameraImage to Image and rotate it so that our frame will be in a portrait
-    image = convertYUV420ToImage(cameraImage!);
-    image =img.copyRotate(image!, angle: camDirec == CameraLensDirection.front?270:90);
-
-    for (Face face in faces) {
-      Rect faceRect = face.boundingBox;
-      //TODO crop face
-     // img.Image cropimage = img.copyCrop(image!, faceRect.left.toInt(),faceRect.top.toInt(),faceRect.width.toInt(),faceRect.height.toInt());
-      img.Image cropimage = img.copyCrop(image!, x:faceRect.left.toInt(),y:faceRect.top.toInt(),width:faceRect.width.toInt(),height:faceRect.height.toInt());
-      //TODO pass cropped face to face recognition model
-      print("vvb");
-      Recognition recognition = widget.recognizer!.recognize(cropimage, faceRect);
-
-      if(recognition.distance>1.25){
-        recognition.name = "Unknown";
+        _matchFaces();
+      } else {
+        _showFailureDialog(
+          title: "No Users Registered",
+          description:
+          "Make sure users are registered first before Authenticating.",
+        );
       }
-      recognitions.add(recognition);
-
-      //TODO show face registration dialogue
-      if(register){
-        print("if gdhjd workinh");
-        showFaceRegistrationDialogue(cropimage,recognition,context);
-        register = false;
-      }
-      else
-      {
-        print("else workinh");
-      }
-
-
-    }
-    setState(() {
-      isDetecting  = false;
-      _scanResults = recognitions;
     });
   }
+  double compareFaces(FaceFeatures face1, FaceFeatures face2) {
+    double distEar1 = euclideanDistance(face1.rightEar!, face1.leftEar!);
+    double distEar2 = euclideanDistance(face2.rightEar!, face2.leftEar!);
 
-  showFaceRegistrationDialogue(img.Image croppedFace, Recognition recognition, BuildContext context){
+    double ratioEar = distEar1 / distEar2;
+
+    double distEye1 = euclideanDistance(face1.rightEye!, face1.leftEye!);
+    double distEye2 = euclideanDistance(face2.rightEye!, face2.leftEye!);
+
+    double ratioEye = distEye1 / distEye2;
+
+    double distCheek1 = euclideanDistance(face1.rightCheek!, face1.leftCheek!);
+    double distCheek2 = euclideanDistance(face2.rightCheek!, face2.leftCheek!);
+
+    double ratioCheek = distCheek1 / distCheek2;
+
+    double distMouth1 = euclideanDistance(face1.rightMouth!, face1.leftMouth!);
+    double distMouth2 = euclideanDistance(face2.rightMouth!, face2.leftMouth!);
+
+    double ratioMouth = distMouth1 / distMouth2;
+
+    double distNoseToMouth1 = euclideanDistance(face1.noseBase!, face1.bottomMouth!);
+    double distNoseToMouth2 = euclideanDistance(face2.noseBase!, face2.bottomMouth!);
+
+    double ratioNoseToMouth = distNoseToMouth1 / distNoseToMouth2;
+
+    double ratio = (ratioEye + ratioEar + ratioCheek + ratioMouth + ratioNoseToMouth) / 5;
+    log(ratio.toString(), name: "Ratio");
+
+    return ratio;
+  }
+
+// A function to calculate the Euclidean distance between two points
+  double euclideanDistance(Points p1, Points p2) {
+    final sqr =
+    math.sqrt(math.pow((p1.x! - p2.x!), 2) + math.pow((p1.y! - p2.y!), 2));
+    return sqr;
+  }
+
+  _matchFaces() async {
+    bool faceMatched = false;
+    for (List user in users) {
+      image1.bitmap = (user.first as UserModel).image;
+      image1.imageType = regula.ImageType.PRINTED;
+
+      //Face comparing logic.
+      var request = regula.MatchFacesRequest();
+      request.images = [image1, image2];
+      dynamic value = await regula.FaceSDK.matchFaces(jsonEncode(request));
+
+      var response = regula.MatchFacesResponse.fromJson(json.decode(value));
+      dynamic str = await regula.FaceSDK.matchFacesSimilarityThresholdSplit(
+          jsonEncode(response!.results), 0.75);
+
+      var split =
+      regula.MatchFacesSimilarityThresholdSplit.fromJson(json.decode(str));
+      setState(() {
+        _similarity = split!.matchedFaces.isNotEmpty
+            ? (split.matchedFaces[0]!.similarity! * 100).toStringAsFixed(2)
+            : "error";
+        log("similarity: $_similarity");
+
+        if (_similarity != "error" && double.parse(_similarity) > 90.00) {
+          faceMatched = true;
+          loggingUser = user.first;
+        } else {
+          faceMatched = false;
+        }
+      });
+      if (faceMatched) {
+        _audioPlayer
+          ..stop()
+          ..setReleaseMode(ReleaseMode.release)
+          ..play(AssetSource("success.mp3"));
+
+        setState(() {
+          trialNumber = 1;
+          isMatching = false;
+        });
+
+        if (mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => UserDetailsView(user: loggingUser!),
+            ),
+          );
+          print("done "+loggingUser!.name.toString());
+        }
+        break;
+      }
+    }
+    if (!faceMatched) {
+      if (trialNumber == 4) {
+        setState(() => trialNumber = 1);
+        _showFailureDialog(
+          title: "Redeem Failed",
+          description: "Face doesn't match. Please try again.",
+        );
+      } else if (trialNumber == 3) {
+
+        _audioPlayer.stop();
+        setState(() {
+          isMatching = false;
+          trialNumber++;
+        });
+        showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text("Enter Name"),
+                content: TextFormField(
+                  controller: _nameController,
+                  cursorColor: Color(0xff55BD94),
+                  decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        width: 2,
+                        color: Color(0xff55BD94),
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        width: 2,
+                        color: Color(0xff55BD94),
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      if (_nameController.text.trim().isEmpty) {
+                        CustomSnackBar.errorSnackBar("Enter a name to proceed");
+                      } else {
+                        Navigator.of(context).pop();
+                        setState(() => isMatching = true);
+                        _playScanningAudio;
+                        _fetchUserByName(_nameController.text.trim());
+                      }
+                    },
+                    child: const Text(
+                      "Done",
+                      style: TextStyle(
+                        color: Color(0xff55BD94),
+                      ),
+                    ),
+                  )
+                ],
+              );
+            });
+      } else {
+        setState(() => trialNumber++);
+        _showFailureDialog(
+          title: "Redeem Failed",
+          description: "Face doesn't match. Please try again.",
+        );
+      }
+    }
+  }
+
+  _fetchUserByName(String orgID) {
+    FirebaseFirestore.instance
+        .collection("users")
+        .where("organizationId", isEqualTo: orgID)
+        .get()
+        .catchError((e) {
+      log("Getting User Error: $e");
+      setState(() => isMatching = false);
+      _playFailedAudio;
+      CustomSnackBar.errorSnackBar("Something went wrong. Please try again.");
+    }).then((snap) {
+      if (snap.docs.isNotEmpty) {
+        users.clear();
+
+        for (var doc in snap.docs) {
+          setState(() {
+            users.add([UserModel.fromJson(doc.data()), 1]);
+          });
+        }
+        _matchFaces();
+      } else {
+        setState(() => trialNumber = 1);
+        _showFailureDialog(
+          title: "User Not Found",
+          description:
+          "User is not registered yet. Register first to authenticate.",
+        );
+      }
+    });
+  }
+  _showFailureDialog({
+    required String title,
+    required String description,
+  }) {
+    _playFailedAudio;
+    setState(() => isMatching = false);
     showDialog(
-      context: context!,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Face Registration",textAlign: TextAlign.center),alignment: Alignment.center,
-        content: SizedBox(
-          height: 340,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 20,),
-              Image.memory(Uint8List.fromList(img.encodeBmp(croppedFace!)),width: 200,height: 200,),
-              SizedBox(
-                width: 200,
-                child: TextField(
-                    controller: textEditingController,
-                    decoration: const InputDecoration( fillColor: Colors.white, filled: true,hintText: "Enter Name")
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(description),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                "Ok",
+                style: TextStyle(
+                  color: Color(0xff55BD94),
                 ),
               ),
-              const SizedBox(height: 10,),
-              ElevatedButton(
-                  onPressed: () {
-                    // _recognizer.registered.putIfAbsent(
-                    //     textEditingController.text, () => recognition);
-                    textEditingController.text = "";
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text("Face Registered"),
-                    ));
-                  },style: ElevatedButton.styleFrom(primary:Colors.blue,minimumSize: const Size(200,40)),
-                  child: const Text("Register"))
-            ],
-          ),
-        ),contentPadding: EdgeInsets.zero,
-      ),
+            )
+          ],
+        );
+      },
     );
   }
 
-
-////TODO method to convert CameraImage to Image
-  img.Image convertYUV420ToImage(CameraImage cameraImage) {
-    final width = cameraImage.width;
-    final height = cameraImage.height;
-
-    final yRowStride = cameraImage.planes[0].bytesPerRow;
-    final uvRowStride = cameraImage.planes[1].bytesPerRow;
-    final uvPixelStride = cameraImage.planes[1].bytesPerPixel!;
-
-    final image = img.Image(width:width, height:height);
-
-    for (var w = 0; w < width; w++) {
-      for (var h = 0; h < height; h++) {
-        final uvIndex =
-            uvPixelStride * (w / 2).floor() + uvRowStride * (h / 2).floor();
-        final index = h * width + w;
-        final yIndex = h * yRowStride + w;
-
-        final y = cameraImage.planes[0].bytes[yIndex];
-        final u = cameraImage.planes[1].bytes[uvIndex];
-        final v = cameraImage.planes[2].bytes[uvIndex];
-
-        image.data!.setPixelR(w, h, yuv2rgb(y, u, v));//= yuv2rgb(y, u, v);
-      }
-
-    }
-
-    return image;
-  }
-  int yuv2rgb(int y, int u, int v) {
-    // Convert yuv pixel to rgb
-    var r = (y + v * 1436 / 1024 - 179).round();
-    var g = (y - u * 46549 / 131072 + 44 - v * 93604 / 131072 + 91).round();
-    var b = (y + u * 1814 / 1024 - 227).round();
-
-    // Clipping RGB values to be inside boundaries [ 0 , 255 ]
-    r = r.clamp(0, 255);
-    g = g.clamp(0, 255);
-    b = b.clamp(0, 255);
-
-    return 0xff000000 |
-    ((b << 16) & 0xff0000) |
-    ((g << 8) & 0xff00) |
-    (r & 0xff);
-  }
-
-  void storeimage() async {
-    for(int i=0;i<getMonthlyConaList.length;i++)
-    {
-      var images=getMonthlyConaList[i].staff_image;
-      var name=getMonthlyConaList[i].staffName;
-      try{
-        final http.Response responseData = await http.get(Uri.parse(images.toString()));
-        var  uint8list = responseData.bodyBytes;
-        var buffer = uint8list.buffer;
-        ByteData byteData = ByteData.view(buffer);
-        var tempDir = await getTemporaryDirectory();
-        // //  image="https://crm.shivagroupind.com//img//image_656f137d1e904.png"";
-        _image=  await File('${tempDir.path}/img').writeAsBytes(buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
-        doFaceDetection();
-      }on Exception catch(_){
-        print("catch working...");
-      }
-    }
-
-  }
 }
 
-class FacePainter extends CustomPainter {
-  List<Recognition> facesList;
-  dynamic imageFile;
-  FacePainter({required this.facesList, @required this.imageFile});
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (imageFile != null) {
-      Paint p = Paint();
-      p.color = Colors.red;
-      p.style = PaintingStyle.stroke;
-      p.strokeWidth = 3;
-      canvas.drawImage(imageFile, Offset.zero, p);
-    }
-    print("hii"+imageFile.toString());
-
-    Paint p = Paint();
-    p.color = Colors.red;
-    p.style = PaintingStyle.stroke;
-    p.strokeWidth = 3;
-    Paint p2 = Paint();
-    p2.color = Colors.green;
-    p2.style = PaintingStyle.stroke;
-    p2.strokeWidth = 3;
-
-    Paint p3 = Paint();
-    p3.color = Colors.yellow;
-    p3.style = PaintingStyle.stroke;
-    p3.strokeWidth = 1;
-
-    for (Recognition rectangle in facesList) {
-      print("heellllllllllll${rectangle.name}");
-      canvas.drawRect(rectangle.location, p2);
-      TextSpan span = TextSpan(
-          style: const TextStyle(color: Colors.white, fontSize: 90),
-          text: "${rectangle.name}  ${rectangle.distance.toStringAsFixed(2)}");
-      TextPainter tp = TextPainter(
-          text: span,
-          textAlign: TextAlign.left,
-          textDirection: TextDirection.ltr);
-      tp.layout();
-      tp.paint(canvas, Offset(rectangle.location.left, rectangle.location.top));
-    }
-
-
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
-  }
-}
 class FaceDetectorPainter extends CustomPainter {
   FaceDetectorPainter(this.absoluteImageSize, this.faces, this.camDire2);
 

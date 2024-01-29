@@ -1,6 +1,6 @@
 class Urls{
   Urls._();
-  static const String BaseUrls="https://crm.shivagroupind.com/api/";
+  static const String BaseUrls="https://crm.alldoneasiatic.com/api/";
   static const String loginApi=Urls.BaseUrls+'check-user-in-db';
   static const String RegistrationApi=Urls.BaseUrls+'register';
   static const String VerifyOtpApi=Urls.BaseUrls+'user-otp-verfiy';
@@ -106,7 +106,7 @@ class Urls{
 
 
   // ===============================image urls documents=====================================
-  static const String ImageUrls="https://crm.shivagroupind.com/img/document-info/";
-  static const String AttendanceUrls="https://crm.shivagroupind.com/admin/assets/attedance_iamge/";
+  static const String ImageUrls="https://crm.alldoneasiatic.com/img/document-info/";
+  static const String AttendanceUrls="https://crm.alldoneasiatic.com/admin/assets/attedance_iamge/";
 
 }

@@ -14,7 +14,7 @@ import 'package:udharproject/Api/AllAPIBooking.dart';
 import 'package:udharproject/Colors/ColorsClass.dart';
 import 'package:udharproject/Utils/AppContent.dart';
 import 'package:udharproject/Utils/Routesss/RoutesName.dart';
-import 'package:ringtone_set/ringtone_set.dart';
+
 class StaffAttendanceController extends GetxController {
   RxString _base64Image = "".obs;
   File? image;
@@ -72,9 +72,8 @@ class StaffAttendanceController extends GetxController {
         if (res != null) {
           if (res == "true") {
             isLoading.value = false;
-           // RingtoneSet.setNotification("assets/attendancemark.mp3");
-            //RingtoneSet.setRingtone("assets/attendancemark.mp3");
-            RingtoneSet.setAlarm("assets/attendancemark.mp3");
+
+          //  RingtoneSet.setAlarm("assets/attendancemark.mp3");
             //=========================dialog page=====================
             showGeneralDialog(
               barrierDismissible: false,

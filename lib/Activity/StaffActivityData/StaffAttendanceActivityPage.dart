@@ -16,14 +16,9 @@ class _StaffAttendaceActivityState extends State<StaffAttendaceActivity> {
   @override
   void initState() {
     super.initState();
-    // Obtain a list of available cameras on the device.
-
   }
-
-
   @override
   void dispose() {
-
     super.dispose();
   }
   @override
@@ -39,7 +34,6 @@ class _StaffAttendaceActivityState extends State<StaffAttendaceActivity> {
                   }, icon: Icon(Icons.camera)),
                 IconButton(onPressed: (){}, icon: Icon(Icons.flash_on)),
               ])),
-
       body: Container(),
       // FutureBuilder<void>(
       //   future: _initializeControllerFuture,

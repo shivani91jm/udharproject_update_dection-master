@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:udharproject/FaceDetection/RecognitionScreen.dart';
+import 'package:udharproject/FaceDetection/RegisterFaceView.dart';
 import 'package:udharproject/Utils/AppContent.dart';
 
 
@@ -69,11 +70,15 @@ class _SalaryCycleAmountState extends State<SalaryCycleAmount> {
             await prefs.setString('staff_cycle', staff_cycle);
             await prefs.setString('monthyly', monthyly);
 
+            //
+            // await availableCameras().then((value) => Navigator.push(context,
+            //     MaterialPageRoute(builder: (_) => RecognitionScreen(cameras: value))));
 
-            await availableCameras().then((value) => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => RecognitionScreen(cameras: value))));
-
-
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => RegisterFaceView(),
+              ),
+            );
           },
             child: Padding(
               padding: const EdgeInsets.all(8.0),
