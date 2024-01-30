@@ -2,6 +2,7 @@ class UserModel {
   String? id;
   String? name;
   String? image;
+  String? salaryType;
   FaceFeatures? faceFeatures;
   int? registeredOn;
 
@@ -9,6 +10,7 @@ class UserModel {
     this.id,
     this.name,
     this.image,
+    this.salaryType,
     this.faceFeatures,
     this.registeredOn,
   });
@@ -18,6 +20,7 @@ class UserModel {
       id: json['id'],
       name: json['name'],
       image: json['image'],
+      salaryType: json['salaryType'],
       faceFeatures: FaceFeatures.fromJson(json["faceFeatures"]),
       registeredOn: json['registeredOn'],
     );
@@ -28,6 +31,7 @@ class UserModel {
       'id': id,
       'name': name,
       'image': image,
+      'salaryType':salaryType,
       'faceFeatures': faceFeatures?.toJson() ?? {},
       'registeredOn': registeredOn,
     };

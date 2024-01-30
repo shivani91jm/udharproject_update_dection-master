@@ -58,7 +58,7 @@ class _HomePageState extends State<AutoDectionPage> {
   List<Recognition> recognitions = [];
   List<Face> faces = [];
   //TODO declare detector
-  dynamic faceDetector;
+
   bool _isRearCameraSelected = true;
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool isDetecting = false;
@@ -80,7 +80,7 @@ class _HomePageState extends State<AutoDectionPage> {
   List<dynamic> users = [];
   bool userExists = false;
   UserModel? loggingUser;
-
+ final FaceDetector faceDetector = FaceDetector(options: FaceDetectorOptions(performanceMode: FaceDetectorMode.accurate));
   int trialNumber = 1;
   get _playScanningAudio => _audioPlayer
     ..setReleaseMode(ReleaseMode.loop)
@@ -92,11 +92,12 @@ class _HomePageState extends State<AutoDectionPage> {
     ..play(AssetSource("failed.mp3"));
   @override
   void initState() {
-    super.initState();
     imagePicker = ImagePicker();
+    super.initState();
+
 
     //TODO initialize detector
-    faceDetector =FaceDetector(options: FaceDetectorOptions(performanceMode: FaceDetectorMode.accurate));
+
 
 
      initCamera(widget.cameras![1]);
@@ -110,16 +111,16 @@ class _HomePageState extends State<AutoDectionPage> {
     try {
       await _cameraController.initialize().then((_) {
         if (!mounted) return;
-        _cameraController.startImageStream((image) async {
-          if(!isDetecting)
-          {
-            isDetecting=true;
-            cameraImage=image;
-
-
-          }
-        });
-        setState(() {});
+        // _cameraController.startImageStream((image) async {
+        //   if(!isDetecting)
+        //   {
+        //     isDetecting=true;
+        //     cameraImage=image;
+        //
+        //
+        //   }
+        // });
+        // setState(() {});
       });
     } on CameraException catch (e) {
       debugPrint("camera error $e");
@@ -140,7 +141,7 @@ class _HomePageState extends State<AutoDectionPage> {
     //   painter: painter,
     // );
     if (isMatching)
-     return Align(
+      return Align(
         alignment: Alignment.center,
         child: Padding(
           padding: EdgeInsets.only(top: 0.064.sh),
@@ -148,49 +149,12 @@ class _HomePageState extends State<AutoDectionPage> {
         ),
       );
     return Align(
-        alignment: Alignment.center,
-        child: Padding(
-          padding: EdgeInsets.only(top: 0.064.sh),
-          child: const AnimatedView(),
-        ),
-      );
-  }
-  Future takePicture() async {
-    if (!_cameraController.value.isInitialized) {
-      return null;
-    }
-    if (_cameraController.value.isTakingPicture) {
-      return null;
-    }
-    try {
-      await _cameraController.setFlashMode(FlashMode.off);
-      XFile picture = await _cameraController.takePicture();
-      print("gvg"+picture.toString());
-    //  _image=picture as File;
-      _image=   File(picture.path);
-
-
-      Uint8List imageBytes = _image!.readAsBytesSync();
-     // widget.onImage(imageBytes);
-      image2.bitmap = base64Encode(imageBytes);
-      image2.imageType = regula.ImageType.PRINTED;
-      InputImage inputImage = InputImage.fromFilePath(picture.path);
-      setState(() => isMatching = true);
-      _faceFeatures = await extractFaceFeatures(
-          inputImage, faceDetector);
-      setState(() => isMatching = false);
-      if(_canAuthenticate)
-      {
-        setState(() => isMatching = true);
-        _playScanningAudio;
-        _fetchUsersAndMatchFace();
-      }
-
-
-    } on CameraException catch (e) {
-      debugPrint('Error occured while taking picture: $e');
-      return null;
-    }
+      alignment: Alignment.center,
+      child: Padding(
+        padding: EdgeInsets.only(top: 0.064.sh),
+        child: const AnimatedView(),
+      ),
+    );
   }
 
 
@@ -266,8 +230,8 @@ class _HomePageState extends State<AutoDectionPage> {
                       ),
                       iconSize: 40,
                       color: Colors.black,
-                      onPressed: () {
-                            takePicture();
+                      onPressed: () async{
+
                       },
                     ),
                     Container(
@@ -277,12 +241,11 @@ class _HomePageState extends State<AutoDectionPage> {
                     Expanded(
                         child: IconButton(
                           onPressed: (){
-                            if(_canAuthenticate)
-                            {
+
                               setState(() => isMatching = true);
                               _playScanningAudio;
                               _fetchUsersAndMatchFace();
-                            }
+
 
                           },
                           iconSize: 50,
@@ -292,6 +255,7 @@ class _HomePageState extends State<AutoDectionPage> {
                         )),
                   ],
                 ),
+
               ],
             ),
           ),

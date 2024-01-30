@@ -348,6 +348,7 @@ class BooksApi {
        else if(response.statusCode==500)
        {
          _apiResponse = SocialMediaLoginModel.fromJson(jsonDecode(response.body));
+         print("gfgdhjhd"+jsonDecode(response.body).toString());
          Fluttertoast.showToast(
              msg: "Server Side Error",
              toastLength: Toast.LENGTH_SHORT,

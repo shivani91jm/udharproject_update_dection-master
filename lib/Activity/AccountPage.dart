@@ -28,7 +28,7 @@ import 'package:udharproject/Utils/AppContent.dart';
 import 'package:udharproject/Utils/Assets/Images/Images.dart';
 import 'package:udharproject/Utils/FontSize/AppSize.dart';
 import 'package:udharproject/Utils/Routesss/RoutesName.dart';
-import 'package:udharproject/main.dart';
+
 import 'package:udharproject/model/MonthlyWiseStaffListModel/Monthly.dart';
 import 'package:udharproject/model/SocialMediaLogin/SocialInfo.dart';
 import 'package:image/image.dart' as img;
@@ -407,7 +407,9 @@ class _AccountPageState extends State<AccountPage> {
                                         context,
                                         MaterialPageRoute(builder: (context) =>  AuthenticateFaceView()),
                                       );
-                                      // Navigator.push(context, MaterialPageRoute(builder: (_) => AutoDectionPage(cameras: camera)));
+                                     //  Navigator.push(context, MaterialPageRoute(builder: (_) => AutoDectionPage(cameras: camera)));
+
+
                                         },
                                     ),
                                   ),

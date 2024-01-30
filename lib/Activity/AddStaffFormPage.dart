@@ -248,8 +248,8 @@ void  ApiAddSaffResponse() async
       var staffno = _Mobilecontroller.text=""+mobile;
 
       var staffpass=_PasswordController.text;
-    var staffemail=_EmailController.text;
-     Navigator.push(context, MaterialPageRoute(builder: (context) =>  SalayPaymentPage(staffno,staffname,staffpass,staffemail)),);
+      var staffemail=_EmailController.text;
+      Navigator.push(context, MaterialPageRoute(builder: (context) =>  SalayPaymentPage(staffno,staffname,staffpass,staffemail)),);
 
     }
   }

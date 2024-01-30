@@ -37,7 +37,7 @@ dependencies:
   floating_bubbles: ^2.2.0
   animated_text_kit: ^4.2.1
   http: ^0.13.5
-  image_picker: 0.8.7+4
+  image_picker: ^1.0.4
   firebase_auth: any
   google_sign_in: any
   firebase_core: any

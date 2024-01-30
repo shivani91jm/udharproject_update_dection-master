@@ -13,6 +13,7 @@ import 'package:udharproject/FaceDetection/extract_face_feature.dart';
 import 'package:udharproject/ML/user_model.dart';
 import 'package:udharproject/Utils/AppContent.dart';
 import 'package:udharproject/Utils/FontSize/AppSize.dart';
+import 'package:udharproject/Utils/FontSize/size_extension.dart';
 import 'package:uuid/uuid.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -66,122 +67,66 @@ class _RegisterFaceViewState extends State<RegisterFaceView> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Container(
-                height: 800,
+                height: 0.82.sh,
                 width: double.infinity,
-                padding: EdgeInsets.fromLTRB(10, 5, 15, 5),
+                padding: EdgeInsets.fromLTRB(0.05.sw, 0.025.sh, 0.05.sw, 0.04.sh),
                 decoration: BoxDecoration(
                   color: Color(0xff2E2E2E),
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10),
+                    topLeft: Radius.circular(0.03.sh),
+                    topRight: Radius.circular(0.03.sh),
                   ),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Container(
-
-                      child: CameraView(
-                        onImage: (image) {
-                          setState(() {
-                            _image = base64Encode(image);
-                          });
-                        },
-                        onInputImage: (inputImage) async {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (context) => const Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xff55BD94),
-                              ),
+                    CameraView(
+                      onImage: (image) {
+                        setState(() {
+                          _image = base64Encode(image);
+                        });
+                      },
+                      onInputImage: (inputImage) async {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xff55BD94),
                             ),
-                          );
-                          _faceFeatures = await extractFaceFeatures(inputImage, _faceDetector);
-                          setState(() {});
-                          if (mounted) Navigator.of(context).pop();
-                        },
-                      ),
+                          ),
+                        );
+                        _faceFeatures = await extractFaceFeatures(inputImage, _faceDetector);
+                        setState(() {});
+                        if (mounted) Navigator.of(context).pop();
+                      },
                     ),
                     const Spacer(),
                     if (_image != null)
-
                       GestureDetector(
-                        onTap: () {
-
+                        onTap: () async{
+                         setState(() {
+                           _validationFormData(_image.toString());
+                         });
                         },
-                        child: Container(
-                          height: 50,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            // boxShadow: [
-                            //   BoxShadow(
-                            //     color: Colors.grey.withOpacity(0.5),
-                            //     spreadRadius: 1,
-                            //     blurRadius: 2,
-                            //     offset: Offset(0, 1),
-                            //   ),
-                            // ],
-                            gradient: LinearGradient(
-                              colors: [Color.fromRGBO(143, 148, 251, .2), Color.fromRGBO(143, 148, 251, .2)],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
+                        child:   Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            height: 50,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                gradient: LinearGradient(colors: [
+                                  Color.fromRGBO(143, 148, 251, 1),
+                                  Color.fromRGBO(143, 148, 251, .6),
+                                ])),
+                            child: Center(
+                              child: Text(AppContents.continues.tr,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontStyle: FontStyle.normal,
+                                    fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          ),
-
-                          child:  MaterialButton(
-                            child: setUpButtonChild(),
-                            onPressed: () async{
-                              final SharedPreferences prefs = await SharedPreferences.getInstance();
-                              setState(() {
-                                btn_color_visiblity=true;
-
-                                if(_state==0)
-                                {
-
-                                  var staffname=     prefs.getString('staffname')??"";
-                                  String userId = Uuid().v1();
-                                  UserModel user = UserModel(
-                                    id: userId,
-                                    name: staffname.toUpperCase(),
-                                    image: _image,
-                                    registeredOn: DateTime.now().millisecondsSinceEpoch,
-                                    faceFeatures: _faceFeatures,
-                                  );
-
-                                  FirebaseFirestore.instance
-                                      .collection("users")
-                                      .doc(userId)
-                                      .set(user.toJson())
-                                      .catchError((e) {
-                                    log("Registration Error: $e");
-                                    Navigator.of(context).pop();
-
-                                    Fluttertoast.showToast(
-                                        msg: "Registration Failed! Try Again.",
-                                        toastLength: Toast.LENGTH_SHORT,
-                                        gravity: ToastGravity.CENTER,
-                                        timeInSecForIosWeb: 1,
-                                        backgroundColor: Colors.deepPurpleAccent,
-                                        textColor: Colors.white,
-                                        fontSize: 16.0
-                                    );
-                                  }).whenComplete(() {
-
-                                    _validationFormData(_image.toString());
-
-                                  });
-
-
-
-
-                                }
-                              });
-                            },
-                            elevation: 4.0,
-                            minWidth: double.infinity,
-                            height: 48.0,
-
                           ),
                         ),
                       ),
@@ -216,19 +161,61 @@ class _RegisterFaceViewState extends State<RegisterFaceView> {
     _futureLogin.then((value) {
       var res = value.response;
       if (res == "true") {
-        setState(() {
-          _state = 0;
-        });
-        Fluttertoast.showToast(
-            msg: "Add Staff Successfully",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.CENTER,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.deepPurpleAccent,
-            textColor: Colors.white,
-            fontSize: 16.0
+
+        var info =value.info.toString();
+        print("staff information"+info.toString());
+        print("staff information"+value.toString());
+
+
+        var staffname=     prefs.getString('staffname')??"";
+        var monthyly=      prefs.getString('monthyly')??"";
+        String userId = Uuid().v1();
+        UserModel user = UserModel(
+          id: value.info!.id.toString(),
+          name: staffname.toUpperCase(),
+          image: _image,
+          salaryType: monthyly,
+          registeredOn: DateTime.now().millisecondsSinceEpoch,
+          faceFeatures: _faceFeatures,
         );
-        Navigator.push(context, MaterialPageRoute(builder: (context) => DashBoard()));
+
+        FirebaseFirestore.instance
+            .collection("users")
+            .doc(userId)
+            .set(user.toJson())
+            .catchError((e) {
+          log("Registration Error: $e");
+          Navigator.of(context).pop();
+
+          Fluttertoast.showToast(
+              msg: "Registration Failed! Try Again.",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.deepPurpleAccent,
+              textColor: Colors.white,
+              fontSize: 16.0
+          );
+        }).whenComplete(() {
+          setState(() {
+            _state = 0;
+          });
+          Fluttertoast.showToast(
+              msg: "Add Staff Successfully",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.deepPurpleAccent,
+              textColor: Colors.white,
+              fontSize: 16.0
+          );
+          Navigator.push(context, MaterialPageRoute(builder: (context) => DashBoard()));
+
+
+        });
+
+
+
       }
       else
         {

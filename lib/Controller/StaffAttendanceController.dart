@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -93,6 +91,71 @@ class StaffAttendanceController extends GetxController {
                     negativeBtnText: AppContents.cancel.tr,
                     positiveBtnPressed: () {
                       Navigator.pushNamed(context!, RoutesNamess.staffdashboard);
+                    },
+                  ),
+                );
+              },
+              pageBuilder: (BuildContext context, Animation animation,
+                  Animation secondaryAnimation) {
+                return Text("gfhghf");
+              },
+            );
+
+
+          }
+          else {
+            isLoading.value = false;
+          }
+        }
+      });
+    }
+    else {
+      _futureLogin.then((value) {
+        isLoading.value = false;
+      });
+    }
+  }
+  void allstaffAttendance(String user_pic, String staff_id,String salary_type) async
+  {
+    SharedPreferences prefsdf = await SharedPreferences.getInstance();
+    var token = prefsdf.getString("token").toString();
+
+    var bussiness_id = prefsdf.getString("bussiness_id").toString();
+    var owner_id = prefsdf.getString("user_id").toString();
+    String formattedDate = DateFormat('HH:mm:ss').format(DateTime.now());
+    var date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    print("date" + formattedDate.toString());
+    var _futureLogin = BooksApi.AddAttendanceapi(context!, token,  owner_id,
+        bussiness_id, "present", formattedDate, "", _currentAddress.toString(), "", "punching_in", "staff",
+        "", "", "", "", "", "", "", "", "", "", "", "", "", salary_type, "", date,staff_id, user_pic, "pending"
+    );
+    if (_futureLogin != null) {
+      _futureLogin.then((value) {
+        var res = value.response;
+        if (res != null) {
+          if (res == "true") {
+            isLoading.value = false;
+
+            //  RingtoneSet.setAlarm("assets/attendancemark.mp3");
+            //=========================dialog page=====================
+            showGeneralDialog(
+              barrierDismissible: false,
+              context: context!,
+              barrierColor: AppColors.textColorsBlack, // space around dialog
+              transitionDuration: Duration(milliseconds: 800),
+              transitionBuilder: (context, a1, a2, child) {
+                return ScaleTransition(
+                  scale: CurvedAnimation(
+                      parent: a1,
+                      curve: Curves.elasticOut,
+                      reverseCurve: Curves.easeOutCubic),
+                  child: CustomDialog( // our custom dialog
+                    title: "MarKed Attendance",
+                    content:"Add Attendance Successfully",
+                    positiveBtnText: AppContents.Done.tr,
+                    negativeBtnText: AppContents.cancel.tr,
+                    positiveBtnPressed: () {
+                      Navigator.pushNamed(context!, RoutesNamess.businessmandashboard);
                     },
                   ),
                 );

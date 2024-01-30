@@ -1,19 +1,32 @@
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:udharproject/Controller/StaffAttendanceController.dart';
 import 'package:udharproject/ML/user_model.dart';
 import 'package:udharproject/Utils/FontSize/size_extension.dart';
 
-class UserDetailsView extends StatelessWidget {
+class UserDetailsView extends StatefulWidget {
   final UserModel user;
   const UserDetailsView({Key? key, required this.user}) : super(key: key);
 
+  @override
+  State<UserDetailsView> createState() => _UserDetailsViewState();
+}
+
+class _UserDetailsViewState extends State<UserDetailsView> {
+  StaffAttendanceController controller=Get.put(StaffAttendanceController());
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    controller.allstaffAttendance(widget.user.image.toString(),widget.user.id.toString(),widget.user.salaryType.toString());
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         centerTitle: true,
-
         title: const Text("Authenticated!!!"),
         elevation: 0,
       ),
@@ -48,7 +61,7 @@ class UserDetailsView extends StatelessWidget {
               ),
               SizedBox(height: 0.025.sh),
               Text(
-                "Hey ${user.name} !",
+                "Hey ${widget.user.name} !",
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 26,

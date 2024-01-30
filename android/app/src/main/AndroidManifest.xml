@@ -16,20 +16,21 @@
     <uses-permission android:name="android.permission.WRITE_SETTINGS"  tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
 
-    <queries>
-        <provider android:authorities="com.facebook.katana.provider.PlatformProvider" />
-    </queries>
-    <queries>
-        <intent>
-            <action android:name="android.media.action.IMAGE_CAPTURE" />
-        </intent>
-    </queries>
+<!--    <queries>-->
+<!--        <provider android:authorities="com.facebook.katana.provider.PlatformProvider" />-->
+<!--    </queries>-->
+<!--    <queries>-->
+<!--        <intent>-->
+<!--            <action android:name="android.media.action.IMAGE_CAPTURE" />-->
+<!--        </intent>-->
+<!--    </queries>-->
    <application
         android:label="Alldone"
-       android:requestLegacyExternalStorage="true"
+
         android:name="${applicationName}"
        android:allowBackup="false"
        android:hardwareAccelerated="false"
+       android:requestLegacyExternalStorage="true"
        tools:replace="android:allowBackup"
        android:fullBackupContent="false"
        android:icon="@drawable/logo_alldone">
