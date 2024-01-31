@@ -5,7 +5,7 @@ import 'package:udharproject/ML/user_model.dart';
 Future<FaceFeatures> extractFaceFeatures(
     InputImage inputImage, FaceDetector faceDetector) async {
   List<Face> faceList = await faceDetector.processImage(inputImage);
-  Face face = faceList.first;
+  Face face = faceList.last;
 
   FaceFeatures faceFeatures = FaceFeatures(
     rightEar: Points(

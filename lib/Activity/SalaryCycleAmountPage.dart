@@ -73,10 +73,10 @@ class _SalaryCycleAmountState extends State<SalaryCycleAmount> {
             //
             // await availableCameras().then((value) => Navigator.push(context,
             //     MaterialPageRoute(builder: (_) => RecognitionScreen(cameras: value))));
-
+            var camera=  await availableCameras();
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => RegisterFaceView(),
+                builder: (context) => RegisterFaceView(cameras: camera,),
               ),
             );
           },

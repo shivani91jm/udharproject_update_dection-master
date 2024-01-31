@@ -13,12 +13,12 @@ class CustomSnackBar {
         ),
       );
 
-  static successSnackBar(String message) =>
+  static successSnackBar(String message,BuildContext context) =>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.deepPurpleAccent,
+          backgroundColor: Colors.lightGreen,
         ),
       );
 }

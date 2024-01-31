@@ -3,12 +3,15 @@ import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_face_api/face_api.dart' as regula;
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:udharproject/Controller/StaffAttendanceController.dart';
 import 'package:udharproject/FaceDetection/camera_view.dart';
 import 'package:udharproject/FaceDetection/extract_face_feature.dart';
 import 'package:udharproject/FaceDetection/scanning_animation/animated_view.dart';
@@ -18,13 +21,16 @@ import 'package:udharproject/Utils/FontSize/size_extension.dart';
 import 'package:udharproject/Utils/custom_snackbar.dart';
 
 class AuthenticateFaceView extends StatefulWidget {
-  const AuthenticateFaceView({Key? key}) : super(key: key);
+  final List<CameraDescription>? cameras;
+
+   AuthenticateFaceView({Key? key,required this.cameras}) : super(key: key);
 
   @override
   State<AuthenticateFaceView> createState() => _AuthenticateFaceViewState();
 }
 
 class _AuthenticateFaceViewState extends State<AuthenticateFaceView> {
+  StaffAttendanceController controller=Get.put(StaffAttendanceController());
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FaceDetector _faceDetector = FaceDetector(
     options: FaceDetectorOptions(
@@ -119,7 +125,7 @@ class _AuthenticateFaceViewState extends State<AuthenticateFaceView> {
                                   _faceFeatures = await extractFaceFeatures(
                                       inputImage, _faceDetector);
                                   setState(() => isMatching = false);
-                                },
+                                }, cameras: widget.cameras  ,
                               ),
                               if (isMatching)
                                 Align(
@@ -138,7 +144,7 @@ class _AuthenticateFaceViewState extends State<AuthenticateFaceView> {
                                setState(() => isMatching = true);
                                _playScanningAudio;
                                _fetchUsersAndMatchFace();
-                             }, child: Text("authenication"),
+                             }, child: Text("Scan"),
                             ),
                           SizedBox(height: 0.038.sh),
                         ],
@@ -255,8 +261,7 @@ class _AuthenticateFaceViewState extends State<AuthenticateFaceView> {
       dynamic str = await regula.FaceSDK.matchFacesSimilarityThresholdSplit(
           jsonEncode(response!.results), 0.75);
 
-      var split =
-      regula.MatchFacesSimilarityThresholdSplit.fromJson(json.decode(str));
+      var split = regula.MatchFacesSimilarityThresholdSplit.fromJson(json.decode(str));
       setState(() {
         _similarity = split!.matchedFaces.isNotEmpty
             ? (split.matchedFaces[0]!.similarity! * 100).toStringAsFixed(2)
@@ -282,12 +287,13 @@ class _AuthenticateFaceViewState extends State<AuthenticateFaceView> {
         });
 
         if (mounted) {
-          Navigator.of(context).push(
+          Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => UserDetailsView(user: loggingUser!),
             ),
           );
-          print("done "+loggingUser!.name.toString());
+
+
         }
         break;
       }

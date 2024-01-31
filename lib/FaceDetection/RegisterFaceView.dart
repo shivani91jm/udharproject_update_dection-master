@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -8,7 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:udharproject/Activity/DashBoard.dart';
 import 'package:udharproject/Api/AllAPIBooking.dart';
 import 'package:udharproject/Colors/ColorsClass.dart';
-import 'package:udharproject/FaceDetection/camera_view.dart';
+import 'package:udharproject/FaceDetection/camera_view2.dart';
+
 import 'package:udharproject/FaceDetection/extract_face_feature.dart';
 import 'package:udharproject/ML/user_model.dart';
 import 'package:udharproject/Utils/AppContent.dart';
@@ -18,7 +20,8 @@ import 'package:uuid/uuid.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 class RegisterFaceView extends StatefulWidget {
-  const RegisterFaceView({Key? key}) : super(key: key);
+  final List<CameraDescription>? cameras;
+  const RegisterFaceView({Key? key,required this.cameras}) : super(key: key);
 
   @override
   State<RegisterFaceView> createState() => _RegisterFaceViewState();
@@ -48,7 +51,7 @@ class _RegisterFaceViewState extends State<RegisterFaceView> {
       appBar: AppBar(
         centerTitle: true,
 
-        title: const Text("Register User"),
+        title: const Text("Register Staff"),
         elevation: 0,
       ),
       body: Container(
@@ -62,79 +65,77 @@ class _RegisterFaceViewState extends State<RegisterFaceView> {
             ],
           ),
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                height: 0.82.sh,
-                width: double.infinity,
-                padding: EdgeInsets.fromLTRB(0.05.sw, 0.025.sh, 0.05.sw, 0.04.sh),
-                decoration: BoxDecoration(
-                  color: Color(0xff2E2E2E),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(0.03.sh),
-                    topRight: Radius.circular(0.03.sh),
-                  ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Container(
+              height: 0.82.sh,
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(0.05.sw, 0.025.sh, 0.05.sw, 0.04.sh),
+              decoration: BoxDecoration(
+                color: Color(0xff2E2E2E),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(0.03.sh),
+                  topRight: Radius.circular(0.03.sh),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    CameraView(
-                      onImage: (image) {
-                        setState(() {
-                          _image = base64Encode(image);
-                        });
-                      },
-                      onInputImage: (inputImage) async {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) => const Center(
-                            child: CircularProgressIndicator(
-                              color: Color(0xff55BD94),
-                            ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  CameraView(
+                    onImage: (image) {
+                      setState(() {
+                        _image = base64Encode(image);
+                      });
+                    },
+                    onInputImage: (inputImage) async {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) => const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xff55BD94),
                           ),
-                        );
-                        _faceFeatures = await extractFaceFeatures(inputImage, _faceDetector);
-                        setState(() {});
-                        if (mounted) Navigator.of(context).pop();
+                        ),
+                      );
+                      _faceFeatures = await extractFaceFeatures(inputImage, _faceDetector);
+                      setState(() {});
+                      if (mounted) Navigator.of(context).pop();
+                    }, cameras: widget.cameras,
+                  ),
+                  const Spacer(),
+                  if (_image != null)
+                    GestureDetector(
+                      onTap: () async{
+                       setState(() {
+                         _validationFormData(_image.toString());
+                       });
                       },
-                    ),
-                    const Spacer(),
-                    if (_image != null)
-                      GestureDetector(
-                        onTap: () async{
-                         setState(() {
-                           _validationFormData(_image.toString());
-                         });
-                        },
-                        child:   Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            height: 50,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                gradient: LinearGradient(colors: [
-                                  Color.fromRGBO(143, 148, 251, 1),
-                                  Color.fromRGBO(143, 148, 251, .6),
-                                ])),
-                            child: Center(
-                              child: Text(AppContents.continues.tr,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontStyle: FontStyle.normal,
-                                    fontWeight: FontWeight.bold),
-                              ),
+                      child:   Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          height: 50,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              gradient: LinearGradient(colors: [
+                                Color.fromRGBO(143, 148, 251, 1),
+                                Color.fromRGBO(143, 148, 251, .6),
+                              ])),
+                          child: Center(
+                            child: Text(AppContents.continues.tr,
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontStyle: FontStyle.normal,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -171,7 +172,7 @@ class _RegisterFaceViewState extends State<RegisterFaceView> {
         var monthyly=      prefs.getString('monthyly')??"";
         String userId = Uuid().v1();
         UserModel user = UserModel(
-          id: value.info!.id.toString(),
+          id: value.info!.getStaffUser!.first.id.toString(),
           name: staffname.toUpperCase(),
           image: _image,
           salaryType: monthyly,

@@ -12,6 +12,7 @@ import 'package:udharproject/Api/AllAPIBooking.dart';
 import 'package:udharproject/Colors/ColorsClass.dart';
 import 'package:udharproject/Utils/AppContent.dart';
 import 'package:udharproject/Utils/Routesss/RoutesName.dart';
+import 'package:udharproject/Utils/custom_snackbar.dart';
 
 class StaffAttendanceController extends GetxController {
   RxString _base64Image = "".obs;
@@ -115,7 +116,7 @@ class StaffAttendanceController extends GetxController {
       });
     }
   }
-  void allstaffAttendance(String user_pic, String staff_id,String salary_type) async
+  void allstaffAttendance(String user_pic, String staff_id,String salary_type,String name) async
   {
     SharedPreferences prefsdf = await SharedPreferences.getInstance();
     var token = prefsdf.getString("token").toString();
@@ -126,8 +127,8 @@ class StaffAttendanceController extends GetxController {
     var date = DateFormat('yyyy-MM-dd').format(DateTime.now());
     print("date" + formattedDate.toString());
     var _futureLogin = BooksApi.AddAttendanceapi(context!, token,  owner_id,
-        bussiness_id, "present", formattedDate, "", _currentAddress.toString(), "", "punching_in", "staff",
-        "", "", "", "", "", "", "", "", "", "", "", "", "", salary_type, "", date,staff_id, user_pic, "pending"
+        bussiness_id, "present", formattedDate, "", _currentAddress.toString(), "", "punching_in", "business_man",
+        "", "", "", "", "", "", "", "", "", "", "", "", "", salary_type, "", date,staff_id, user_pic, "approved"
     );
     if (_futureLogin != null) {
       _futureLogin.then((value) {
@@ -138,35 +139,36 @@ class StaffAttendanceController extends GetxController {
 
             //  RingtoneSet.setAlarm("assets/attendancemark.mp3");
             //=========================dialog page=====================
-            showGeneralDialog(
-              barrierDismissible: false,
-              context: context!,
-              barrierColor: AppColors.textColorsBlack, // space around dialog
-              transitionDuration: Duration(milliseconds: 800),
-              transitionBuilder: (context, a1, a2, child) {
-                return ScaleTransition(
-                  scale: CurvedAnimation(
-                      parent: a1,
-                      curve: Curves.elasticOut,
-                      reverseCurve: Curves.easeOutCubic),
-                  child: CustomDialog( // our custom dialog
-                    title: "MarKed Attendance",
-                    content:"Add Attendance Successfully",
-                    positiveBtnText: AppContents.Done.tr,
-                    negativeBtnText: AppContents.cancel.tr,
-                    positiveBtnPressed: () {
-                      Navigator.pushNamed(context!, RoutesNamess.businessmandashboard);
-                    },
-                  ),
-                );
-              },
-              pageBuilder: (BuildContext context, Animation animation,
-                  Animation secondaryAnimation) {
-                return Text("gfhghf");
-              },
-            );
+            // showGeneralDialog(
+            //   barrierDismissible: false,
+            //   context: context!,
+            //   barrierColor: AppColors.textColorsBlack, // space around dialog
+            //   transitionDuration: Duration(milliseconds: 800),
+            //   transitionBuilder: (context, a1, a2, child) {
+            //     return ScaleTransition(
+            //       scale: CurvedAnimation(
+            //           parent: a1,
+            //           curve: Curves.elasticOut,
+            //           reverseCurve: Curves.easeOutCubic),
+            //       child: CustomDialog( // our custom dialog
+            //         title: "Hey ${name} !MarKed Attendance",
+            //         content:"Add Attendance Successfully",
+            //         positiveBtnText: AppContents.Done.tr,
+            //         negativeBtnText: AppContents.cancel.tr,
+            //         positiveBtnPressed: () {
+            //           Navigator.pushNamed(context!, RoutesNamess.businessmandashboard);
+            //         },
+            //       ),
+            //     );
 
-
+            //   },
+            //   pageBuilder: (BuildContext context, Animation animation,
+            //       Animation secondaryAnimation) {
+            //     return Text("gfhghf");
+            //   },
+            // );
+            CustomSnackBar.successSnackBar("Hey ${name} Attendance Successfully",context!);
+            Navigator.pushReplacementNamed(context!, RoutesNamess.businessmandashboard);
           }
           else {
             isLoading.value = false;

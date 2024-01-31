@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -10,12 +9,9 @@ import 'package:path_provider/path_provider.dart';
 
 class CameraView extends StatefulWidget {
   final List<CameraDescription>? cameras;
-
   const CameraView({Key? key, required this.onImage, required this.onInputImage,required this.cameras}) : super(key: key);
-
   final Function(Uint8List image) onImage;
   final Function(InputImage inputImage) onInputImage;
-
   @override
   State<CameraView> createState() => _CameraViewState();
 }
@@ -30,10 +26,8 @@ class _CameraViewState extends State<CameraView> {
   void initState() {
     super.initState();
     _imagePicker = ImagePicker();
-   initstaion();
+    initstaion();
   }
-
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -49,7 +43,7 @@ class _CameraViewState extends State<CameraView> {
           ],
         ),
         SizedBox(height: 20),
-        // _image != null?
+        _image != null?
         //     ? CircleAvatar(
         //         radius:150,
         //         backgroundColor: const Color(0xffD9D9D9),
@@ -58,45 +52,40 @@ class _CameraViewState extends State<CameraView> {
         //     :
 
         Container(
-
-              child:  Container(
-                height: 350,
-                width: 350,
-                child: (_cameraController.value.isInitialized)
-                    ? AspectRatio(
-                  aspectRatio: _cameraController.value.aspectRatio,
-                  child: ClipOval(
-                    child: CameraPreview(_cameraController),
-                  ),
-                )
-                    : const Center(child:
-                CircularProgressIndicator()),
+          height: 350,
+          width: 350,
+          child: (_cameraController.value.isInitialized)
+              ? AspectRatio(
+            aspectRatio: _cameraController.value.aspectRatio,
+            child: ClipOval(
+              child: CameraPreview(_cameraController),
+            ),
+          )
+              : Container(),
+        ): CircleAvatar(
+                radius:150,
+                backgroundColor: const Color(0xffD9D9D9),
+                 backgroundImage:  AssetImage('assets/images/background.png'),
               ),
-            )
-            // : CircleAvatar(
-            //         radius:150,
-            //         backgroundColor: const Color(0xffD9D9D9),
-            //          backgroundImage: (_image == null) ? AssetImage('assets/images/background.png') : FileImage(_image!) as ImageProvider,
-            //       ),
-        // GestureDetector(
-        //   onTap: _getImage,
-        //   child: Container(
-        //     width: 60,
-        //     height: 60,
-        //     margin: const EdgeInsets.only(top: 44, bottom: 20),
-        //     decoration: const BoxDecoration(
-        //       color:  Color(0xffD9D9D9),
-        //       shape: BoxShape.circle,
-        //     ),
-        //   ),
-        // ),
-        // Text(
-        //   "Click here to Capture",
-        //   style: TextStyle(
-        //     fontSize: 16,
-        //     color:  Color(0xffD9D9D9).withOpacity(0.6),
-        //   ),
-        // ),
+        GestureDetector(
+          onTap: _getImage,
+          child: Container(
+            width: 60,
+            height: 60,
+            margin: const EdgeInsets.only(top: 44, bottom: 20),
+            decoration: const BoxDecoration(
+              color:  Color(0xffD9D9D9),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+        Text(
+          "Click here to Capture",
+          style: TextStyle(
+            fontSize: 16,
+            color:  Color(0xffD9D9D9).withOpacity(0.6),
+          ),
+        ),
       ],
     );
   }
@@ -115,8 +104,8 @@ class _CameraViewState extends State<CameraView> {
         return null;
       }
 
-        await _cameraController.setFlashMode(FlashMode.off);
-        XFile pickedFile = await _cameraController.takePicture();
+      await _cameraController.setFlashMode(FlashMode.off);
+      XFile pickedFile = await _cameraController.takePicture();
       // final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera, maxWidth: 400,
       //   maxHeight: 400,);
 
@@ -154,53 +143,45 @@ class _CameraViewState extends State<CameraView> {
     final path = pickedFile?.path;
     if (path == null) {
       print("path not founfd......");
-
-
     }
-
   }
   void initstaion() async {
 
     _cameraController = CameraController(
         widget.cameras![1], ResolutionPreset.high);
-   // _cameraController.initialize();
-    await _cameraController.initialize().then((_) {
-      if (!mounted) return;
+     _cameraController.initialize();
+    // await _cameraController.initialize().then((_) {
+    //   if (!mounted) return;
+    //
+    //   _cameraController.startImageStream((image) async {
+    //     if (!isDetecting) {
+    //       isDetecting = true;
+    //       var cameraImage = image;
+    //
+    //       img.Image convertedImage = await _convertCameraImage(image);
+    //
+    //       // Save the converted image to a file
+    //       final String path = await _saveImageToFile(convertedImage);
+    //       print("fhdhf" + path);
+    //
+    //
+    //       setState(() {
+    //         _image = File(path);
+    //       });
+    //
+    //       Uint8List imageBytes = _image!.readAsBytesSync();
+    //       widget.onImage(imageBytes);
+    //
+    //       InputImage inputImage = InputImage.fromFilePath(
+    //           path.toString());
+    //       widget.onInputImage(inputImage);
+    //       isDetecting=false;
+    //
+    //     }
+    //   });
 
-      _cameraController.startImageStream((image) async {
-        if (!isDetecting) {
-          isDetecting = true;
-          var cameraImage = image;
 
-          img.Image convertedImage = await _convertCameraImage(image);
-
-          // Save the converted image to a file
-          final String path = await _saveImageToFile(convertedImage);
-          print("fhdhf" + path);
-
-
-          setState(() {
-            _image = File(path);
-          });
-
-          Uint8List imageBytes = _image!.readAsBytesSync();
-          widget.onImage(imageBytes);
-
-          InputImage inputImage = InputImage.fromFilePath(path.toString());
-          widget.onInputImage(inputImage);
-          isDetecting=false;
-
-        }
-      });
-
-      //   var bytes = <your_image_file_name>!.bytes;
-      //   String tempath = (await getTemporaryDirectory()).path;
-      //   File imgfile = File('$tempath/AddFile.png');
-      //   await imgfile.writeAsBytes(bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
-      //   final InputImage inputImage = InputImage.fromFile(imageFile!);
-      // });
-     // _getImage();
-    });
+   // });
   }
   Future<String> _saveImageToFile(img.Image image) async {
     final appDir = await getApplicationDocumentsDirectory();

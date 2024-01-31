@@ -19,7 +19,7 @@ class _UserDetailsViewState extends State<UserDetailsView> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    controller.allstaffAttendance(widget.user.image.toString(),widget.user.id.toString(),widget.user.salaryType.toString());
+    controller.allstaffAttendance(widget.user.image.toString(),widget.user.id.toString(),widget.user.salaryType.toString(),widget.user.name.toString());
   }
   @override
   Widget build(BuildContext context) {

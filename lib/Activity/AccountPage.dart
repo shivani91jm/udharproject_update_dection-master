@@ -405,7 +405,7 @@ class _AccountPageState extends State<AccountPage> {
                                       var camera=  await availableCameras();
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) =>  AuthenticateFaceView()),
+                                        MaterialPageRoute(builder: (context) =>  AuthenticateFaceView(cameras: camera,)),
                                       );
                                      //  Navigator.push(context, MaterialPageRoute(builder: (_) => AutoDectionPage(cameras: camera)));
 
