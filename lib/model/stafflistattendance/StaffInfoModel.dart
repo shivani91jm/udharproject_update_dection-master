@@ -1,13 +1,13 @@
 class StaffInfoModel {
-  int? staffId;
+  int? id;
   String? staffImage;
   String? staffName;
   String? salaryPaymentType;
 
-  StaffInfoModel({this.staffId, this.staffImage, this.staffName, this.salaryPaymentType});
+  StaffInfoModel({this.id, this.staffImage, this.staffName, this.salaryPaymentType});
 
   StaffInfoModel.fromJson(Map<String, dynamic> json) {
-    staffId = json['staff_id'];
+    id = json['id'];
     staffImage = json['staff_image'];
     staffName = json['staff_name'];
     salaryPaymentType = json['salary_payment_type'];
@@ -15,7 +15,7 @@ class StaffInfoModel {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['staff_id'] = this.staffId;
+    data['id'] = this.id;
     data['staff_image'] = this.staffImage;
     data['staff_name'] = this.staffName;
     data['salary_payment_type'] = this.salaryPaymentType;

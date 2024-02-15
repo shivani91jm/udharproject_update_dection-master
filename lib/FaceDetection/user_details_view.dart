@@ -2,11 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:udharproject/Controller/StaffAttendanceController.dart';
-import 'package:udharproject/ML/user_model.dart';
+import 'package:udharproject/ML/Recognition.dart';
+
 import 'package:udharproject/Utils/FontSize/size_extension.dart';
 
 class UserDetailsView extends StatefulWidget {
-  final UserModel user;
+  final Recognition user;
   const UserDetailsView({Key? key, required this.user}) : super(key: key);
 
   @override
@@ -19,7 +20,7 @@ class _UserDetailsViewState extends State<UserDetailsView> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    controller.allstaffAttendance(widget.user.image.toString(),widget.user.id.toString(),widget.user.salaryType.toString(),widget.user.name.toString());
+    controller.allstaffAttendance("",widget.user.staff_id.toString(),widget.user.salrytype.toString(),widget.user.name.toString());
   }
   @override
   Widget build(BuildContext context) {

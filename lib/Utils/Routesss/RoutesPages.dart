@@ -26,7 +26,7 @@ import 'package:udharproject/Activity/StaffLeave/AddStaffLeaveActivity.dart';
 import 'package:udharproject/Activity/StaffLeave/StaffApplyLeaveActvity.dart';
 import 'package:udharproject/Activity/UpdateBusinessManDetails/BusinessNameUpdateActivity.dart';
 import 'package:udharproject/Activity/WelcomeShivaBothLoginPage.dart';
-import 'package:udharproject/FaceDetection/RecognitionScreen.dart';
+
 
 import 'package:udharproject/Utils/Routesss/RoutesName.dart';
 

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class CustomSnackBar {
   static late BuildContext context;
 
-  static errorSnackBar(String message) =>
+  static errorSnackBar(String message,BuildContext context) =>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),

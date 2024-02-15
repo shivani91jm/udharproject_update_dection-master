@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:udharproject/FaceDetection/RecognitionScreen.dart';
-import 'package:udharproject/FaceDetection/RegisterFaceView.dart';
+
+import 'package:udharproject/FaceDetection/StaffRegistrationPage.dart';
 import 'package:udharproject/Utils/AppContent.dart';
 
 
@@ -73,12 +73,14 @@ class _SalaryCycleAmountState extends State<SalaryCycleAmount> {
             //
             // await availableCameras().then((value) => Navigator.push(context,
             //     MaterialPageRoute(builder: (_) => RecognitionScreen(cameras: value))));
-            var camera=  await availableCameras();
+           final  camera=  await availableCameras();
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => RegisterFaceView(cameras: camera,),
+                builder: (context) => StaffRegistrationPage(cameras: camera,),
               ),
             );
+
+
           },
             child: Padding(
               padding: const EdgeInsets.all(8.0),
