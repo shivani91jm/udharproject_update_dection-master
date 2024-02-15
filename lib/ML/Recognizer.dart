@@ -131,7 +131,7 @@ class Recognizer {
      Pair pair = findNearest(outputArray);
      print("distance= ${pair.distance}");
 
-     return Recognition(pair.name,location,outputArray,pair.distance,);
+     return Recognition(pair.name,pair.staff_id,location,outputArray,pair.distance,pair.salary_type);
   }
 
   //TODO  looks for the nearest embeeding in the database and returns the pair which contain information of registered face with which face is most similar
