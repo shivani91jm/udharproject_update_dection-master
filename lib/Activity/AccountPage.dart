@@ -19,9 +19,8 @@ import 'package:udharproject/Activity/LoginPage.dart';
 import 'package:udharproject/Activity/ManngeBusinessList.dart';
 import 'package:udharproject/Api/AllAPIBooking.dart';
 import 'package:udharproject/Colors/ColorsClass.dart';
-import 'package:udharproject/FaceDetection/AuthenticateFaceView.dart';
-import 'package:udharproject/FaceDetection/AutoDectionPage.dart';
-import 'package:udharproject/FaceDetection/RecognitionScreen.dart';
+
+import 'package:udharproject/FaceDetection/StaffRecogniationPage.dart';
 import 'package:udharproject/ML/Recognition.dart';
 
 import 'package:udharproject/Utils/AppContent.dart';
@@ -405,7 +404,7 @@ class _AccountPageState extends State<AccountPage> {
                                       var camera=  await availableCameras();
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) =>  AuthenticateFaceView(cameras: camera,)),
+                                        MaterialPageRoute(builder: (context) =>  StaffRecognationPage(cameras: camera,)),
                                       );
                                      //  Navigator.push(context, MaterialPageRoute(builder: (_) => AutoDectionPage(cameras: camera)));
 
