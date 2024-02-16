@@ -149,7 +149,7 @@ class _StaffRegistrationPageState extends State<StaffRegistrationPage> {
 
               const SizedBox(height: 10,),
               ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async{
                   //  recognizer.registerFaceInDB(textEditingController.text, recognition.embeddings);
                     _validationFormData(recognition.embeddings);
 
@@ -394,8 +394,9 @@ class _StaffRegistrationPageState extends State<StaffRegistrationPage> {
     var salary_amount=  await prefs.getString('salary_amount')??"";
     var staff_cycle=    await prefs.getString('staff_cycle')??"";
     var monthyly=     await prefs.getString('monthyly')??"";
+    var staffimage=image;
 
-    var _futureLogin = BooksApi.addStaff(staffname,staffmob,staffpassw,staffemail,staff_cycle,monthyly,salary_amount,assign_to_owner_id,assgin_to_bussinesses_id,token,context,image.toString() );
+    var _futureLogin = BooksApi.addStaff(staffname,staffmob,staffpassw,staffemail,staff_cycle,monthyly,salary_amount,assign_to_owner_id,assgin_to_bussinesses_id,token,context,staffimage.toString() );
     _futureLogin.then((value) {
       var res = value.response;
       if (res == "true") {

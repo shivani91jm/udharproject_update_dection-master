@@ -2269,15 +2269,13 @@ class _AttendencePageClassState extends State<AttendencePageClass> {
       ],
     );
 }
-
   void currentDateMethod() {
     nextDate=currentDate.toString() ;
     DateFormat('yyyy-MM-dd').format(currentDate);
     DateTime startDate = DateTime.parse(nextDate);
     print(startDate);
   }
-
- Widget nodatastaffList() {
+  Widget nodatastaffList() {
     return Center(
       child: Column(
         children: [
