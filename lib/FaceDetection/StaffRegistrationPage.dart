@@ -7,6 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 import 'package:image/image.dart' as img;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:udharproject/Activity/DashBoard.dart';
+import 'package:udharproject/Api/AllAPIBooking.dart';
 import 'package:udharproject/ML/Recognition.dart';
 import 'package:udharproject/ML/Recognizer.dart';
 
@@ -143,18 +146,12 @@ class _StaffRegistrationPageState extends State<StaffRegistrationPage> {
             children: [
               const SizedBox(height: 20,),
               Image.memory(Uint8List.fromList(img.encodeBmp(croppedFace!)),width: 200,height: 200,),
-              SizedBox(
-                width: 200,
-                child: TextField(
-                    controller: textEditingController,
-                    decoration: const InputDecoration( fillColor: Colors.white, filled: true,hintText: "Enter Name")
-                ),
-              ),
+
               const SizedBox(height: 10,),
               ElevatedButton(
                   onPressed: () {
-                   // recognizer.registerFaceInDB(textEditingController.text, recognition.embeddings);
-                    controller.
+                  //  recognizer.registerFaceInDB(textEditingController.text, recognition.embeddings);
+                    _validationFormData(recognition.embeddings);
 
                     },
                   style: ElevatedButton.styleFrom(primary:Colors.blue,minimumSize: const Size(200,40)),
@@ -247,10 +244,12 @@ class _StaffRegistrationPageState extends State<StaffRegistrationPage> {
 
   // TODO Show rectangles around detected faces
   Widget buildResult() {
-    if (_scanResults == null ||
-        controller == null ||
-        !controller.value.isInitialized) {
-      return const Center(child: Text('Camera is not initialized'));
+    if (controller == null || !controller.value.isInitialized) {
+      return const  Center(child: CircularProgressIndicator());
+    }
+    if(_scanResults==null)
+    {
+      return const Center(child: Text(""));
     }
     final Size imageSize = Size(
       controller.value.previewSize!.height,
@@ -264,18 +263,19 @@ class _StaffRegistrationPageState extends State<StaffRegistrationPage> {
 
   //TODO toggle camera direction
   void _toggleCameraDirection() async {
-    if (camDirec == CameraLensDirection.back) {
-      camDirec = CameraLensDirection.front;
-      description = widget.cameras[1];
-    } else {
-      camDirec = CameraLensDirection.back;
-      description = widget.cameras[0];
-    }
-    await controller.stopImageStream();
+    // if (camDirec == CameraLensDirection.back) {
+    //   camDirec = CameraLensDirection.front;
+    //   description = widget.cameras[1];
+    // } else {
+    //   camDirec = CameraLensDirection.back;
+    //   description = widget.cameras[0];
+    // }
+    // await controller.stopImageStream();
+
+    initializeCamera(widget.cameras[1]);
     setState(() {
-      controller;
+      isBusy=false;
     });
-    initializeCamera(widget.cameras[0]);
   }
 
   @override
@@ -378,6 +378,34 @@ class _StaffRegistrationPageState extends State<StaffRegistrationPage> {
             )),
       ),
     );
+  }
+  void _validationFormData(List<double> image) async{
+
+    SharedPreferences prefsdf = await SharedPreferences.getInstance();
+    var   token= prefsdf.getString("token").toString();
+    var assign_to_owner_id = prefsdf.getString("user_id").toString();
+    var  assgin_to_bussinesses_id = prefsdf.getString("bussiness_id").toString();
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    var staffname=     prefs.getString('staffname')??"";
+    var staffmob=   await prefs.getString('staffmob')??"";
+    var staffpassw =  await prefs.getString('staffpassw')??"";
+    var staffemail =     await prefs.getString('staffemail')??"";
+    var salary_amount=  await prefs.getString('salary_amount')??"";
+    var staff_cycle=    await prefs.getString('staff_cycle')??"";
+    var monthyly=     await prefs.getString('monthyly')??"";
+
+    var _futureLogin = BooksApi.addStaff(staffname,staffmob,staffpassw,staffemail,staff_cycle,monthyly,salary_amount,assign_to_owner_id,assgin_to_bussinesses_id,token,context,image.toString() );
+    _futureLogin.then((value) {
+      var res = value.response;
+      if (res == "true") {
+        var info =value.info.toString();
+        print("staff information"+info.toString());
+        print("staff information"+value.toString());
+        Navigator.push(context, MaterialPageRoute(builder: (context) => DashBoard()));
+      }
+    });
+
   }
 }
 

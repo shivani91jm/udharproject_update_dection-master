@@ -4,7 +4,7 @@ class SocialMediaLoginModel {
   String? response;
   String? msg;
   SocialInfo? info;
-  String? errors;
+   var errors;
   int? statusCode;
 
   SocialMediaLoginModel({this.response, this.msg, this.info, this.errors, this.statusCode});

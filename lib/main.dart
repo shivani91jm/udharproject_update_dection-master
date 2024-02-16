@@ -19,7 +19,6 @@ void main() async
   //   builder: (context) =>  MyApp(),
   // ));
 
-
   runApp( MyApp());
 
 }
@@ -43,12 +42,15 @@ class MyApp extends StatelessWidget {
             translations: MultipleLanguagePage(),
             locale: Locale('hi','In'),
             theme: ThemeData(
+              appBarTheme: AppBarTheme(
+                color: AppColors.lightColorTheme
+              ),
               visualDensity: VisualDensity.adaptivePlatformDensity,
               colorScheme: ColorScheme.light(
                 primary:  AppColors.lightColorTheme,
                 secondary: AppColors.drakColorTheme,
-
-              ),),
+              ),
+            ),
 
             initialRoute: RoutesNamess.splashscreen,
             onGenerateRoute: RoutesPages.generateRoute));

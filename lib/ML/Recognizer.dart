@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:image/image.dart' as img;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:udharproject/Api/AllAPIBooking.dart';
 import 'package:udharproject/model/stafflistattendance/StaffInfoModel.dart';
 
 import 'Recognition.dart';
@@ -28,44 +31,57 @@ class Recognizer {
   }
 
   initDB() async {
-  //  await dbHelper.init();
-   users=await firebaseService.fetchDataFromFirestore();
-    loadRegisteredFaces();
+    SharedPreferences prefsdf = await SharedPreferences.getInstance();
+    var token = prefsdf.getString("token").toString();
+
+    var bussiness_id = prefsdf.getString("bussiness_id").toString();
+    var owner_id = prefsdf.getString("user_id").toString();
+   var _futureLogin= BooksApi.showStaffListAttendace(owner_id,bussiness_id,token);
+    if (_futureLogin != null) {
+      _futureLogin!.then((value) {
+        var res = value.response.toString();
+        if (res == "true") {
+          print("ghffsfdfdsdgf"+value.info.toString());
+          users= value.info;
+          loadRegisteredFaces();
+        }
+      });
+
+
+
+    }
+  // users=await firebaseService.fetchDataFromFirestore();
+    //loadRegisteredFaces();
   }
 
   void loadRegisteredFaces() async {
     registered.clear();
-   // final allRows = await dbHelper.queryAllRows();
-   // debugPrint('query all rows:');
-   //  for (final row in allRows) {
-   //  //  debugPrint(row.toString());
-   //    print(row[DatabaseHelper.columnName]);
-   //    String name = row[DatabaseHelper.columnName];
-   //    List<double> embd = row[DatabaseHelper.columnEmbedding].split(',').map((e) => double.parse(e)).toList().cast<double>();
-   //    Recognition recognition = Recognition(row[DatabaseHelper.columnName],Rect.zero,embd,0);
-   //    registered.putIfAbsent(name, () => recognition);
-   //    print("R="+name);
-   //  }
 
-   // List<User> users = await firebaseService.fetchDataFromFirestore();
     for(int i=0;i<users!.length;i++)
       {
-             String name = users![i].staffName.toString();
+        print("lenfght"+users!.length.toString());
+
            // List<double> embd = users[i].modelData;
-            List<double> embd = users![i].staffImage.toString().map((dynamic value) => value.toDouble()).toList();
-             // List<double> embd = users![i].staffImage.toString()
-             //     .map((dynamic value) {
-             //   if (value is num) {
-             //     return value.toDouble();
-             //   } else {
-             //     // Handle the case where the value is not a number, e.g., return a default value or handle the error.
-             //     return 0.0; // Replace with your handling logic.
-             //   }
-             // })
-             //     .toList();
-            Recognition recognition = Recognition(name,users![i].id.toString(),Rect.zero,embd,0,users![i].salaryPaymentType.toString());
-           registered.putIfAbsent(name, () => recognition);
-            print("R="+name);
+          //  List<double> embd = .map((dynamic value) => value.toDouble()).toList();
+             if(users![i].staffImage.toString()!="null" && users![i].staffImage.toString()!=null) {
+                try{
+                  String name = users![i].staffName.toString();
+                  print("cvv"+name);
+                  List<double> embd = List<double>.from(
+                      json.decode(users![i].staffImage.toString()).map((value) =>
+                          value.toDouble()));
+
+                  Recognition recognition = Recognition(
+                      name, users![i].id.toString(), Rect.zero, embd, 0,
+                      users![i].salaryPaymentType.toString());
+                  registered.putIfAbsent(name, () => recognition);
+                  print("R=" + name);
+                } on FormatException catch(e)
+                  {
+
+                  }
+
+             }
       }
 
   }

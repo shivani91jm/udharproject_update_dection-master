@@ -133,10 +133,10 @@ class _StaffRecognationPageState extends State<StaffRecognationPage> {
               ..stop()
               ..setReleaseMode(ReleaseMode.release)
               ..play(AssetSource("sucessAttendance.m4r"));
-               // Navigator.pushReplacement(context, MaterialPageRoute(
-               //  builder: (context) =>
-               //      UserDetailsView(user: recognition,)),
-             //  );
+               Navigator.pushReplacement(context, MaterialPageRoute(
+                builder: (context) =>
+                    UserDetailsView(user: recognition,)),
+              );
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString('page', '1');
           }

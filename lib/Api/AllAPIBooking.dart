@@ -807,7 +807,7 @@ static Future<BussinessInfomationModel> businessman(String business_user_id, Str
 
     final result = await InternetAddress.lookup('google.com');
     if (result.isNotEmpty && result[0].rawAddress.isNotEmpty)
-    { print("token "+token);
+    {   print("token "+token);
       final response = await http.post(Uri.parse(Urls.BussinessInfo),
 
         headers: <String, String>
