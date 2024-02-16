@@ -368,7 +368,7 @@ class _StaffRecognationPageState extends State<StaffRecognationPage> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.amber,
+
           actions: [
                            IconButton(
                             icon: const Icon(
