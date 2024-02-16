@@ -2088,17 +2088,19 @@ class _AttendencePageClassState extends State<AttendencePageClass> {
                 Row(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(10.0),
+                      padding: const EdgeInsets.all(9.0),
                       child: Image.asset('assets/images/swear.png',height: 35,width: 35,),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(8.0,0.0,0.0,0.0),
-                      child: Text(AppContents.makeAttedanceDeduct.tr, style: TextStyle(
-                          color: Colors.black54,
-                          fontStyle: FontStyle.normal,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
-                      ),),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(8.0,0.0,0.0,0.0),
+                        child: Text(AppContents.makeAttedanceDeduct.tr, style: TextStyle(
+                            color: Colors.black54,
+                            fontStyle: FontStyle.normal,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold),
+                        ),),
+                    ),
                   ],
                 ),
                 Row(

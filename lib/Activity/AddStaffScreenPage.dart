@@ -1178,15 +1178,18 @@ Widget  AddStaffScreenDataPage() {
             children: [
               Padding(padding: const EdgeInsets.all(10.0),
                 child: Image.asset(ImagesAssets.swear, height: 35, width: 35,),),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8.0, 0.0, 0.0, 0.0),
-                child: Text(AppContents.marksattendancetitle.tr,
-                  style: TextStyle(
-                      color: Colors.black54,
-                      fontStyle: FontStyle.normal,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
-                ),),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8.0, 0.0, 0.0, 0.0),
+                  child: Text(AppContents.marksattendancetitle.tr,
+                    style: TextStyle(
+                        color: Colors.black54,
+                        fontStyle: FontStyle.normal,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
             ],
           ),
           Row(
@@ -1195,15 +1198,16 @@ Widget  AddStaffScreenDataPage() {
                 padding: const EdgeInsets.all(10.0),
                 child: Image.asset(ImagesAssets.calculator, height: 35, width: 35,),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8.0, 0.0, 0.0, 0.0),
-                child: Text(AppContents.autosalry.tr,
-                  style: TextStyle(
-                      color: Colors.black54,
-                      fontStyle: FontStyle.normal,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
-                ),),
+             Expanded(child:  Padding(
+               padding: const EdgeInsets.fromLTRB(8.0, 0.0, 0.0, 0.0),
+               child: Text(AppContents.autosalry.tr,
+                 style: TextStyle(
+                     color: Colors.black54,
+                     fontStyle: FontStyle.normal,
+                     fontSize: 16,
+                     fontWeight: FontWeight.bold),
+               ),
+             )),
             ],
           ),
           Row(children: [

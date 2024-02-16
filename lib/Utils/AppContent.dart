@@ -139,8 +139,7 @@ class AppContents
    static const String empInfo="Employment Information";
    static const String empID="Employee ID";
    static const String addStaffEnjoy="Add Staff to enjoy attendance features";
-   static const String makeAttedanceDeduct="Make  Attendance  and Deduct Salary for \n "
-       " Absents";
+   static const String makeAttedanceDeduct="Make  Attendance  and Deduct Salary for Absents";
    static const String empEmpty="Employee ID is Requires!!";
    static const String empDesignation="Designation";
    static const String noofhours="Number of Hours";
