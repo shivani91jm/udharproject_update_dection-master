@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
   Map _userObj = {};
   var email = "";
   var btn_color_visiblity=false;
-
+  final AuthServices authController = Get.put(AuthServices());
   @override
   void dispose() {
     // TODO: implement dispose
@@ -248,39 +248,42 @@ class _LoginPageState extends State<LoginPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            GestureDetector(
-              onTap: () {
-                AuthServices.signup(context);
-              },
-              child: Container(
-                height: 50,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(100),
-                    gradient: LinearGradient(colors: [
-                      Colors.grey.shade400,
-                      Colors.white30,
-                    ])),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Center(
-                    child: Row(
-                      children: [
-                        Image.asset(ImagesAssets.loginGoogle),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                              8.0, 0.0, 0.0, 0.0),
-                          child: Text("", style: TextStyle(
-                              color: Colors.white,
-                              fontStyle: FontStyle.normal,
-                              fontWeight: FontWeight.bold),
+            Obx(
+            () => authController.isLoading.value
+            ? CircularProgressIndicator()
+                :GestureDetector(
+                      onTap: () {
+                        authController.signup(context);
+                      },
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(100),
+                            gradient: LinearGradient(colors: [
+                              Colors.grey.shade400,
+                              Colors.white30,
+                            ])),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(
+                            child: Row(
+                              children: [
+                                Image.asset(ImagesAssets.loginGoogle),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                      8.0, 0.0, 0.0, 0.0),
+                                  child: Text("", style: TextStyle(
+                                      color: Colors.white,
+                                      fontStyle: FontStyle.normal,
+                                      fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+                      ),
+                    )),
             GestureDetector(
               onTap: () {
                 FacebookAuth.instance.login(

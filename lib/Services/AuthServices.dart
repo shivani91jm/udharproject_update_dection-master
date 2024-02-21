@@ -20,138 +20,129 @@ import 'package:udharproject/model/SocialMediaLogin/GetStaffUser.dart';
 import 'package:udharproject/model/SocialMediaLogin/SocialMedialLoginModel.dart';
 import 'package:udharproject/model/StaffLoginModel/GetStaffModel.dart';
 
-class AuthServices{
-  //google sign in with firebase
-  // signInwithGoogle() async{
-  //   final GoogleSignIn googleSignIn = GoogleSignIn();
-  //   final GoogleSignInAccount? gUser= await googleSignIn.signIn();
-  //   final GoogleSignInAuthentication googleSignInAuthentication = await gUser!.authentication;
-  //   final AuthCredential credential = GoogleAuthProvider.credential(
-  //       accessToken: googleSignInAuthentication.accessToken,
-  //       idToken: googleSignInAuthentication.idToken,
-  //     );
-  //     return await FirebaseAuth.instance.signInWithCredential(credential);
-  // }
+class AuthServices extends GetxController{
+  RxBool isLoading = false.obs;
 
 
-  // function to implement the google signin
-
-// creating google signin (only google registration)
-
-
-  static Future<void> signup(BuildContext context) async {
-    Future<OTPModalClass>? _futureData;
-    Future<SocialMediaLoginModel>? _futureSocialLogin;
-    List<GetStaffUser> sharedGetStaffData=[];
-    SharedPreferences loginData = await SharedPreferences.getInstance();
-   final FirebaseAuth auth = FirebaseAuth.instance;
-    final GoogleSignIn googleSignIn = GoogleSignIn();
-    final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
-    if (googleSignInAccount != null) {
-      final GoogleSignInAuthentication googleSignInAuthentication =
-      await googleSignInAccount.authentication;
-      final AuthCredential authCredential = GoogleAuthProvider.credential(
-          idToken: googleSignInAuthentication.idToken,
-          accessToken: googleSignInAuthentication.accessToken);
-      // Getting users credential
-      UserCredential result = await auth.signInWithCredential(authCredential);
-      if (result != null) {
-        User? user = result.user;
-        var usermobile="";
-        var usesrname="";
-        if(user!=null) {
-          if(user.phoneNumber!=null) {
-            usermobile = user.phoneNumber.toString();
-          }
-          else
-            {
-                usermobile="";
+   Future<void> signup(BuildContext context) async {
+    try{
+      isLoading.value = true;
+      Future<OTPModalClass>? _futureData;
+      Future<SocialMediaLoginModel>? _futureSocialLogin;
+      List<GetStaffUser> sharedGetStaffData=[];
+      SharedPreferences loginData = await SharedPreferences.getInstance();
+      final FirebaseAuth auth = FirebaseAuth.instance;
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
+      if (googleSignInAccount != null) {
+        final GoogleSignInAuthentication googleSignInAuthentication =
+        await googleSignInAccount.authentication;
+        final AuthCredential authCredential = GoogleAuthProvider.credential(
+            idToken: googleSignInAuthentication.idToken,
+            accessToken: googleSignInAuthentication.accessToken);
+        // Getting users credential
+        UserCredential result = await auth.signInWithCredential(authCredential);
+        if (result != null) {
+          User? user = result.user;
+          var usermobile="";
+          var usesrname="";
+          if(user!=null) {
+            if(user.phoneNumber!=null) {
+              usermobile = user.phoneNumber.toString();
             }
-          if(user.displayName!=null)
+            else
+            {
+              usermobile="";
+            }
+            if(user.displayName!=null)
             {
               usesrname=user.displayName.toString();
             }
-          else
+            else
             {
               usesrname="";
             }
-          if(user.email!=null) {
-            var useremail=user.email.toString();
-            print("user.email"+useremail);
-         var   _futureSocialLogin = BooksApi.socialmedialloginpage(useremail, context);
-            if (_futureSocialLogin != null) {
-              _futureSocialLogin.then((value) {
-                var res = value.response.toString();
-                print("res"+res.toString());
-                if (res =="true") {
-                  if (value.info != null) {
-                    var info = value.info;
-                    var bussiness_id=info!.id.toString();
-                    if(info.getStaffUser!=null)
+            if(user.email!=null) {
+              var useremail=user.email.toString();
+              print("user.email"+useremail);
+              var   _futureSocialLogin = BooksApi.socialmedialloginpage(useremail, context);
+              if (_futureSocialLogin != null) {
+                _futureSocialLogin.then((value) {
+                  var res = value.response.toString();
+                  print("res"+res.toString());
+                  if (res =="true") {
+                    if (value.info != null) {
+                      var info = value.info;
+                      var bussiness_id=info!.id.toString();
+                      if(info.getStaffUser!=null)
                       {
                         List<GetStaffUser>? getstaff=info.getStaffUser;
                         if(getstaff!.length>1)
-                          {
-                            sharedGetStaffData= info.getStaffUser!;
-                            final String encodedData = GetStaffUser.encode(sharedGetStaffData);
-                            loginData.setString("getStaffListData",encodedData);
-                            showGeneralDialog(
-                              barrierDismissible: false,
-                              context: context,
-                              barrierColor: Colors.black54, // space around dialog
-                              transitionDuration: Duration(milliseconds: 800),
-                              transitionBuilder: (context, a1, a2, child) {
-                                return ScaleTransition(
-                                  scale: CurvedAnimation(
-                                      parent: a1,
-                                      curve: Curves.elasticOut,
-                                      reverseCurve: Curves.easeOutCubic),
-                                  child: CustomDialog( // our custom dialog
-                                    title: AppContents.login.tr,
-                                    content:
-                                    AppContents.loginSucess.tr,
-                                    positiveBtnText: AppContents.Done.tr,
-                                    negativeBtnText: AppContents.cancel.tr,
-                                    positiveBtnPressed: () {
-                                      Navigator.pushNamed(context, RoutesNamess.bussinessandstaffbothlogin,arguments: {
-                                        "business_id":bussiness_id,
-                                      });
+                        {
+                          sharedGetStaffData= info.getStaffUser!;
+                          final String encodedData = GetStaffUser.encode(sharedGetStaffData);
+                          loginData.setString("getStaffListData",encodedData);
+                          showGeneralDialog(
+                            barrierDismissible: false,
+                            context: context,
+                            barrierColor: Colors.black54, // space around dialog
+                            transitionDuration: Duration(milliseconds: 800),
+                            transitionBuilder: (context, a1, a2, child) {
+                              return ScaleTransition(
+                                scale: CurvedAnimation(
+                                    parent: a1,
+                                    curve: Curves.elasticOut,
+                                    reverseCurve: Curves.easeOutCubic),
+                                child: CustomDialog( // our custom dialog
+                                  title: AppContents.login.tr,
+                                  content:
+                                  AppContents.loginSucess.tr,
+                                  positiveBtnText: AppContents.Done.tr,
+                                  negativeBtnText: AppContents.cancel.tr,
+                                  positiveBtnPressed: () {
+                                    Navigator.pushNamed(context, RoutesNamess.bussinessandstaffbothlogin,arguments: {
+                                      "business_id":bussiness_id,
+                                    });
 
-                                    },
-                                  ),
-                                );
-                              },
-                              pageBuilder: (BuildContext context, Animation animation,
-                                  Animation secondaryAnimation) {
-                                return Text("gfhghf");
-                              },
-                            );
+                                  },
+                                ),
+                              );
+                            },
+                            pageBuilder: (BuildContext context, Animation animation,
+                                Animation secondaryAnimation) {
+                              return Text("gfhghf");
+                            },
+                          );
 
 
-                          }
+                        }
                         else
-                          {
-                            verifyBussinessmanapi(bussiness_id, context);
-                          }
+                        {
+                          verifyBussinessmanapi(bussiness_id, context);
+                        }
 
                       }
-                    else
+                      else
                       {
                         verifyBussinessmanapi(bussiness_id, context);
                       }
+                    }
                   }
-                }
-                else if (res == "false") {
-                  registration(usermobile,useremail,usesrname,context);
-                }
-              });
+                  else if (res == "false") {
+                    registration(usermobile,useremail,usesrname,context);
+                  }
+                });
+              }
             }
           }
         }
+
+
       }
-
-
-    }
+    } catch(e){}
+     finally{
+       isLoading.value = false;
+     }
   }
 
   static void registration(String usermobile,String email,String name,BuildContext context) async{

@@ -2,14 +2,11 @@ import 'dart:developer';
 import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:camera/camera.dart';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:intl/intl.dart';
-
 import 'package:image/image.dart' as img;
-
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:udharproject/FaceDetection/user_details_view.dart';
 import 'package:udharproject/ML/Recognition.dart';
@@ -365,32 +362,29 @@ class _StaffRecognationPageState extends State<StaffRecognationPage> {
     //   ),
     // ));
 
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-
-          actions: [
-                           IconButton(
-                            icon: const Icon(
-                              Icons.cached,
-                              color: Colors.white,
-                            ),
-                            iconSize: 40,
-                            color: Colors.black,
-                            onPressed: () {
-                              _toggleCameraDirection();
-                            },
+    return Scaffold(
+      appBar: AppBar(
+        actions: [
+          IconButton(
+                          icon: const Icon(
+                            Icons.cached,
+                            color: Colors.white,
                           ),
-          ],
-        ),
-        backgroundColor: Colors.black,
-        body: Container(
-            margin: const EdgeInsets.only(top: 0),
-            color: Colors.black,
-            child: Stack(
-              children: stackChildren,
-            )
-        ),
+                          iconSize: 40,
+                          color: Colors.black,
+                          onPressed: () {
+                            _toggleCameraDirection();
+                          },
+                        ),
+        ],
+      ),
+      backgroundColor: Colors.black,
+      body: Container(
+          margin: const EdgeInsets.only(top: 0),
+          color: Colors.black,
+          child: Stack(
+            children: stackChildren,
+          )
       ),
     );
   }
